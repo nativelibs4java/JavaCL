@@ -1,33 +1,4 @@
-/*
- * JavaCL - Java API and utilities for OpenCL
- * http://javacl.googlecode.com/
- *
- * Copyright (c) 2009-2011, Olivier Chafik (http://ochafik.com/)
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * 
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Olivier Chafik nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY OLIVIER CHAFIK AND CONTRIBUTORS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+#parse("main/Header.vm")
 package com.nativelibs4java.opencl;
 import com.nativelibs4java.opencl.ImageIOUtils.ImageInfo;
 import static com.nativelibs4java.opencl.library.OpenCLLibrary.CL_IMAGE_HEIGHT;
@@ -57,8 +28,8 @@ import com.nativelibs4java.util.Pair;
  * @author Olivier Chafik
  */
 public class CLImage2D extends CLImage {
-	CLImage2D(CLContext context, cl_mem entity, CLImageFormat format) {
-        super(context, entity, format);
+	CLImage2D(CLContext context, long entityPeer, CLImageFormat format) {
+        super(context, entityPeer, format);
 	}
 
 	/**
@@ -85,22 +56,37 @@ public class CLImage2D extends CLImage {
 		return infos.getIntOrLong(getEntity(), CL_IMAGE_HEIGHT);
 	}
 
+	/**
+#documentEventsToWaitForAndReturn()
+	 */
 	public CLEvent read(CLQueue queue, long minX, long minY, long width, long height, long rowPitch, Buffer out, boolean blocking, CLEvent... eventsToWaitFor) {
 		Pointer<?> ptrOut = pointerToBuffer(out);
 		CLEvent evt = read(queue, minX, minY, width, height, rowPitch, ptrOut, blocking, eventsToWaitFor);
 		ptrOut.updateBuffer(out); // in case the buffer wasn't direct !
 		return evt;
 	}
+	/**
+#documentEventsToWaitForAndReturn()
+	 */
 	public CLEvent read(CLQueue queue, long minX, long minY, long width, long height, long rowPitch, Pointer<?> out, boolean blocking, CLEvent... eventsToWaitFor) {
 		return read(queue, pointerToSizeTs(minX, minY, 0), pointerToSizeTs(width, height, 1), rowPitch, 0, out, blocking, eventsToWaitFor);
 	}
+	/**
+#documentEventsToWaitForAndReturn()
+	 */
 	public CLEvent write(CLQueue queue, long minX, long minY, long width, long height, long rowPitch, Buffer in, boolean blocking, CLEvent... eventsToWaitFor) {
 		return write(queue, minX, minY, width, height, rowPitch, pointerToBuffer(in), blocking, eventsToWaitFor);
 	}
+	/**
+#documentEventsToWaitForAndReturn()
+	 */
 	public CLEvent write(CLQueue queue, long minX, long minY, long width, long height, long rowPitch, Pointer<?> in, boolean blocking, CLEvent... eventsToWaitFor) {
 		return write(queue, pointerToSizeTs(minX, minY, 0), pointerToSizeTs(width, height, 1), rowPitch, 0, in, blocking, eventsToWaitFor);
 	}
 
+	/**
+	 * @param eventsToWaitFor Events that need to complete before this particular command can be executed.
+     */
 	public BufferedImage read(CLQueue queue, CLEvent... eventsToWaitFor) {
         ImageInfo info = ImageIOUtils.getBufferedImageInfo(getFormat());
         int imageType = info == null ? 0 : info.bufferedImageType;
@@ -112,6 +98,9 @@ public class CLImage2D extends CLImage {
 		read(queue, im, false, eventsToWaitFor);
 		return im;
 	}
+	/**
+	 * @param eventsToWaitFor Events that need to complete before this particular command can be executed.  
+     */
 	public void read(CLQueue queue, BufferedImage imageOut, boolean allowDeoptimizingDirectWrite, CLEvent... eventsToWaitFor) {
 		//if (!getFormat().isIntBased())
 		//	throw new IllegalArgumentException("Image-read only supports int-based RGBA images");
@@ -124,12 +113,21 @@ public class CLImage2D extends CLImage {
 		read(queue, 0, 0, width, height, 0, dataOut, true, eventsToWaitFor);
         info.dataSetter.setData(imageOut, dataOut.getBuffer(), allowDeoptimizingDirectWrite);
 	}
+	/**
+#documentEventsToWaitForAndReturn()
+	 */
 	public CLEvent write(CLQueue queue, Image image, CLEvent... eventsToWaitFor) {
 		return write(queue, image, 0, 0, image.getWidth(null), image.getHeight(null), false, false, eventsToWaitFor);
 	}
+	/**
+#documentEventsToWaitForAndReturn()
+	 */
 	public CLEvent write(CLQueue queue, Image image, boolean allowDeoptimizingDirectRead, boolean blocking, CLEvent... eventsToWaitFor) {
 		return write(queue, image, 0, 0, image.getWidth(null), image.getHeight(null), allowDeoptimizingDirectRead, blocking, eventsToWaitFor);
 	}
+	/**
+#documentEventsToWaitForAndReturn()
+	 */
 	public CLEvent write(CLQueue queue, Image image, int destX, int destY, int width, int height, boolean allowDeoptimizingDirectRead, boolean blocking, CLEvent... eventsToWaitFor) {
 		//int imWidth = image.getWidth(null), height = image.getHeight(null);
         ImageInfo info = ImageIOUtils.getBufferedImageInfo(getFormat());
@@ -153,10 +151,16 @@ public class CLImage2D extends CLImage {
 	public ByteBuffer map(CLQueue queue, MapFlags flags, long offsetX, long offsetY, long lengthX, long lengthY, long rowPitch, CLEvent... eventsToWaitFor) {
 		return map(queue, flags, pointerToSizeTs(offsetX, offsetY), pointerToSizeTs(lengthX, lengthY), rowPitch, null, true, eventsToWaitFor).getFirst();
     }
+	/**
+#documentEventsToWaitForAndPairReturn("byte buffer")
+	 */
 	public Pair<ByteBuffer, CLEvent> mapLater(CLQueue queue, MapFlags flags, boolean blocking, CLEvent... eventsToWaitFor) {
 		return map(queue, flags, pointerToSizeTs(0, 0), pointerToSizeTs(getWidth(), getHeight()), getWidth(), null, blocking, eventsToWaitFor);
     }
-    public Pair<ByteBuffer, CLEvent> mapLater(CLQueue queue, MapFlags flags, long offsetX, long offsetY, long lengthX, long lengthY, long rowPitch, boolean blocking, CLEvent... eventsToWaitFor) {
+    /**
+#documentEventsToWaitForAndPairReturn("byte buffer")
+	 */
+	public Pair<ByteBuffer, CLEvent> mapLater(CLQueue queue, MapFlags flags, long offsetX, long offsetY, long lengthX, long lengthY, long rowPitch, boolean blocking, CLEvent... eventsToWaitFor) {
 		return map(queue, flags, pointerToSizeTs(offsetX, offsetY), pointerToSizeTs(lengthX, lengthY), rowPitch, null, blocking, eventsToWaitFor);
     }
 }

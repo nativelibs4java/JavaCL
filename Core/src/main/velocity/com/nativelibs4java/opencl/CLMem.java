@@ -1,33 +1,4 @@
-/*
- * JavaCL - Java API and utilities for OpenCL
- * http://javacl.googlecode.com/
- *
- * Copyright (c) 2009-2011, Olivier Chafik (http://ochafik.com/)
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * 
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Olivier Chafik nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY OLIVIER CHAFIK AND CONTRIBUTORS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+#parse("main/Header.vm")
 package com.nativelibs4java.opencl;
 import static com.nativelibs4java.opencl.CLException.error;
 import static com.nativelibs4java.opencl.JavaCL.CL;
@@ -58,21 +29,16 @@ import static org.bridj.Pointer.*;
  * Kernels take memory objects as input, and output to one or more memory objects.
  * @author Olivier Chafik
  */
-public abstract class CLMem extends CLAbstractEntity<cl_mem> {
+public abstract class CLMem extends CLAbstractEntity {
 
     protected final CLContext context;
     protected long byteCount = -1;
     boolean isGL;
 
-	protected static CLInfoGetter<cl_mem> infos = new CLInfoGetter<cl_mem>() {
-		@Override
-		protected int getInfo(cl_mem entity, int infoTypeEnum, long size, Pointer out, Pointer<SizeT> sizeOut) {
-			return CL.clGetImageInfo(entity, infoTypeEnum, size, out, sizeOut);
-		}
-	};
+    #declareInfosGetter("infos", "CL.clGetImageInfo")
 
-    CLMem(CLContext context, long byteCount, cl_mem entity) {
-        super(entity);
+    CLMem(CLContext context, long byteCount, long entityPeer) {
+        super(entityPeer);
         this.byteCount = byteCount;
         this.context = context;
     }
@@ -86,6 +52,7 @@ public abstract class CLMem extends CLAbstractEntity<cl_mem> {
     }
     
     /**
+#documentCallsFunction("clSetMemObjectDestructorCallback")
      * Registers a user callback function that will be called when the memory object is deleted and its resources freed. <br/>
      * Each call to clSetMemObjectDestructorCallback registers the specified user callback function on a callback stack associated with memobj. <br/>
      * The registered user callback functions are called in the reverse order in which they were registered. <br/>
@@ -102,7 +69,7 @@ public abstract class CLMem extends CLAbstractEntity<cl_mem> {
     		}
     	};
     	BridJ.protectFromGC(cb);
-    	error(CL.clSetMemObjectDestructorCallback(getEntity(), pointerTo(cb), null));
+    	error(CL.clSetMemObjectDestructorCallback(getEntity(), getPeer(pointerTo(cb)), 0));
     }
     
     public CLEvent acquireGLObject(CLQueue queue, CLEvent... eventsToWaitFor) {
@@ -230,12 +197,16 @@ public abstract class CLMem extends CLAbstractEntity<cl_mem> {
             return name;
         }
     }
+    /**
+#documentCallsFunction("clGetGLObjectInfo")
+     */
     @SuppressWarnings("deprecation")
 	public GLObjectInfo getGLObjectInfo() {
-        Pointer<Integer> typeRef = allocateInt();
-        Pointer<Integer> nameRef = allocateInt();
-        CL.clGetGLObjectInfo(getEntity(), typeRef, nameRef);
-        return new GLObjectInfo(GLObjectType.getEnum(typeRef.get()), nameRef.get());
+		#declareReusablePtrs()
+        Pointer<Integer> typeRef = ptrs.int1;
+        Pointer<Integer> nameRef = ptrs.int2;
+        CL.clGetGLObjectInfo(getEntity(), getPeer(typeRef), getPeer(nameRef));
+        return new GLObjectInfo(GLObjectType.getEnum(typeRef.getInt()), nameRef.getInt());
     }
 	public enum MapFlags implements com.nativelibs4java.util.ValuedEnum {
 		Read(CL_MAP_READ),
@@ -250,6 +221,6 @@ public abstract class CLMem extends CLAbstractEntity<cl_mem> {
 
     @Override
     protected void clear() {
-        error(CL.clReleaseMemObject(getPeer(getEntity())));
+        error(CL.clReleaseMemObject(getEntity()));
     }
 }

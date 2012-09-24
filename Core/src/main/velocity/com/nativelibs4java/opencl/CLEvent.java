@@ -1,33 +1,4 @@
-/*
- * JavaCL - Java API and utilities for OpenCL
- * http://javacl.googlecode.com/
- *
- * Copyright (c) 2009-2011, Olivier Chafik (http://ochafik.com/)
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * 
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Olivier Chafik nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY OLIVIER CHAFIK AND CONTRIBUTORS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+#parse("main/Header.vm")
 package com.nativelibs4java.opencl;
 import static com.nativelibs4java.opencl.CLException.error;
 import static com.nativelibs4java.opencl.JavaCL.CL;
@@ -40,6 +11,7 @@ import com.nativelibs4java.opencl.library.OpenCLLibrary.cl_event;
 import com.nativelibs4java.util.EnumValue;
 import com.nativelibs4java.util.EnumValues;
 import org.bridj.*;
+import org.bridj.ann.Ptr;
 import static org.bridj.Pointer.*;
 
 /**
@@ -57,32 +29,30 @@ import static org.bridj.Pointer.*;
  * 
  * @author ochafik
  */
-public class CLEvent extends CLAbstractEntity<cl_event> {
+public class CLEvent extends CLAbstractEntity {
 
-	private static CLInfoGetter<cl_event> infos = new CLInfoGetter<cl_event>() {
-		@Override
-		protected int getInfo(cl_event entity, int infoTypeEnum, long size, Pointer out, Pointer<SizeT> sizeOut) {
-			return CL.clGetEventInfo(entity, infoTypeEnum, size, out, sizeOut);
-		}
-	};
-
-	private static CLInfoGetter<cl_event> profilingInfos = new CLInfoGetter<cl_event>() {
-		@Override
-		protected int getInfo(cl_event entity, int infoTypeEnum, long size, Pointer out, Pointer<SizeT> sizeOut) {
-			return CL.clGetEventProfilingInfo(entity, infoTypeEnum, size, out, sizeOut);
-		}
-	};
+	/**
+	 * Pass this to special value to any method that expects a variable number of events to wait for and that returns an event, to completely avoid returning the completion event (will return null instead of the event). 
+	 */
+	public static final CLEvent FIRE_AND_FORGET = new CLEvent(null, -1);
 	
-	CLEvent(cl_event evt) {
+	#declareInfosGetter("infos", "CL.clGetEventInfo")
+
+	#declareInfosGetter("profilingInfos", "CL.clGetEventProfilingInfo")
+	
+	private final CLQueue queue;
+	
+    CLEvent(CLQueue queue, long evt) {
 		super(evt, false);
+		this.queue = queue;
 	}
-
-    CLEvent() {
-		super(null, true);
+	
+	public CLQueue getQueue() {
+		return queue;
 	}
-
+	
     public interface EventCallback {
-    	public void callback(CLEvent event, int executionStatus);
+    	public void callback(int executionStatus);
     }
     
     /**
@@ -94,7 +64,21 @@ public class CLEvent extends CLAbstractEntity<cl_event> {
     public void setCompletionCallback(final EventCallback callback) {
     	setCallback(CL_COMPLETE, callback);
     }
+    
+	private static final clSetEventCallback_arg1_callback eventCallback = new clSetEventCallback_arg1_callback() {
+		public void apply(@Ptr long evt, int executionStatus, @Ptr long callbackPeer) {
+			EventCallback callback = (EventCallback)JNI.refToObject(callbackPeer);
+			try {
+				callback.callback(executionStatus);
+			} finally {
+				JNI.deleteGlobalRef(callbackPeer);
+			}
+		}
+	};
+	private static final long eventCallbackPeer = getPeer(pointerTo(eventCallback));
+	
     /**
+#documentCallsFunction("clSetEventCallback")
      * Registers a user callback function for a specific command execution status. <br/>
      * The registered callback function will be called when the execution status of command associated with event changes to the execution status specified by command_exec_status.
      * @param commandExecStatus specifies the command execution status for which the callback is registered. The command execution callback values for which a callback can be registered are: CL_COMPLETE. There is no guarantee that the callback functions registered for various execution status values for an event will be called in the exact order that the execution status of a command changes.
@@ -104,30 +88,23 @@ public class CLEvent extends CLAbstractEntity<cl_event> {
      */
     public void setCallback(int commandExecStatus, final EventCallback callback) {
     	try {
-    		clSetEventCallback_arg1_callback cb = new clSetEventCallback_arg1_callback() {
-	    		public void apply(OpenCLLibrary.cl_event evt, int executionStatus, Pointer voidPtr1) {
-	    			callback.callback(CLEvent.this, executionStatus);
-	    		}
-	    	};
-	    	// TODO manage lifespan of cb
-    		BridJ.protectFromGC(cb);
-	    	error(CL.clSetEventCallback(getEntity(), commandExecStatus, pointerTo(cb), null));
-    	} catch (Throwable th) {
-    		// TODO check if supposed to handle OpenCL 1.1
-    		throw new UnsupportedOperationException("Cannot set event callback (OpenCL 1.1 feature).", th);
+	    	error(CL.clSetEventCallback(getEntity(), commandExecStatus, eventCallbackPeer, JNI.newGlobalRef(callback)));
+    	} catch (UnsatisfiedLinkError th) {
+    		throw new UnsupportedOperationException("Cannot set event callback (OpenCL 1.1 feature): " + th, th);
     	}
     }
     
-    static CLEvent createEvent(final CLQueue queue, cl_event evt) {
+    static CLEvent createEvent(final CLQueue queue, long evt) {
     		return createEvent(queue, evt, false);
     }
-	static CLEvent createEvent(final CLQueue queue, cl_event evt, boolean isUserEvent) {
-		if (evt == null)
+    
+	static CLEvent createEvent(final CLQueue queue, long evt, boolean isUserEvent) {
+		if (evt == 0)
 			return null;
 
         return isUserEvent ? 
-        		new CLUserEvent(evt) : 
-        		new CLEvent(evt);
+        		new CLUserEvent(queue, evt) : 
+        		new CLEvent(queue, evt);
 	}
 
     static CLEvent createEventFromPointer(CLQueue queue, Pointer<cl_event> evt1) {
@@ -138,7 +115,7 @@ public class CLEvent extends CLAbstractEntity<cl_event> {
         if (peer == 0)
             return null;
         
-        return new CLEvent(new cl_event(peer));
+        return new CLEvent(queue, peer);
 	}
 
 
@@ -146,12 +123,11 @@ public class CLEvent extends CLAbstractEntity<cl_event> {
 	 * Wait for this event, blocking the caller thread independently of any queue until all of the command associated with this events completes.
 	 */
 	public void waitFor() {
-		if (entity == null)
-			return;
 		waitFor(this);
 	}
 
 	/**
+#documentCallsFunction("clWaitForEvents")
 	 * Wait for events, blocking the caller thread independently of any queue until all of the commands associated with the events completed.
 	 * @param eventsToWaitFor List of events which completion is to be waited for
 	 */
@@ -160,12 +136,11 @@ public class CLEvent extends CLAbstractEntity<cl_event> {
 			return;
 		
 		try {
-            ReusablePointers ptrs = ReusablePointers.get();
-            int[] eventsCount = new int[1];
-            Pointer<cl_event> events = CLAbstractEntity.copyNonNullEntities(eventsToWaitFor, eventsCount, ptrs.events_in);
-            if (events == null)
+			#declareReusablePtrs()
+			#declareEventsIn()
+            if (eventsIn == null)
                 return;
-            error(CL.clWaitForEvents(eventsCount[0], getPeer(events)));
+            error(CL.clWaitForEvents(#eventsInArgsRaw()));
 		} catch (Exception ex) {
 			throw new RuntimeException("Exception while waiting for events " + Arrays.asList(eventsToWaitFor), ex);
 		}
@@ -200,21 +175,17 @@ public class CLEvent extends CLAbstractEntity<cl_event> {
 		}.start();
 	}
 
-    static Pointer<cl_event> new_event_out(CLEvent[] eventsToWaitFor) {
-        return ReusablePointers.get().event_out;
+	static boolean containsFireAndForget(CLEvent[] eventsToWaitFor) {
+		for (int i = eventsToWaitFor.length; i-- != 0;) {
+			if (eventsToWaitFor[i] == FIRE_AND_FORGET)
+				return true;
+		}
+		return false;
     }
     
-    @Deprecated
-	static Pointer<cl_event> to_cl_event_array(CLEvent... events) {
-        int[] countOut = new int[1];
-        Pointer<cl_event> p = CLAbstractEntity.copyNonNullEntities(events, countOut, ReusablePointers.get().events_in);
-        int count = countOut[0];
-        return count == 0 ? null : p.as(cl_event.class).validElements(count);//p.validBytes(count * Pointer.SIZE);
-    }
-
 	@Override
 	protected void clear() {
-		error(CL.clReleaseEvent(getPeer(getEntity())));
+		error(CL.clReleaseEvent(getEntity()));
 	}
 
 	/** Values for CL_EVENT_COMMAND_EXECUTION_STATUS */

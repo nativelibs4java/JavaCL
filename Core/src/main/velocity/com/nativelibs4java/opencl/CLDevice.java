@@ -1,33 +1,4 @@
-/*
- * JavaCL - Java API and utilities for OpenCL
- * http://javacl.googlecode.com/
- *
- * Copyright (c) 2009-2011, Olivier Chafik (http://ochafik.com/)
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * 
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Olivier Chafik nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY OLIVIER CHAFIK AND CONTRIBUTORS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+#parse("main/Header.vm")
 package com.nativelibs4java.opencl;
 
 import com.nativelibs4java.util.EnumValue;
@@ -59,26 +30,21 @@ import java.util.logging.Logger;
  * {@link CLPlatform#listGPUDevices(boolean) }
  */
 @SuppressWarnings("unused")
-public class CLDevice extends CLAbstractEntity<cl_device_id> {
+public class CLDevice extends CLAbstractEntity {
 
-    private static CLInfoGetter<cl_device_id> infos = new CLInfoGetter<cl_device_id>() {
-
-        @Override
-        protected int getInfo(cl_device_id entity, int infoTypeEnum, long size, Pointer out, Pointer<SizeT> sizeOut) {
-            return CL.clGetDeviceInfo(entity, infoTypeEnum, size, out, sizeOut);
-        }
-    };
+    #declareInfosGetter("infos", "CL.clGetDeviceInfo")
+    
     volatile CLPlatform platform;
 
-    CLDevice(CLPlatform platform, cl_device_id device) {
+    CLDevice(CLPlatform platform, long device) {
         super(device);
         this.platform = platform;
     }
-
+    
     public synchronized CLPlatform getPlatform() {
         if (platform == null) {
             Pointer pplat = infos.getPointer(getEntity(), CL_DEVICE_PLATFORM);
-            platform = new CLPlatform(pplat == null ? null : new cl_platform_id(pplat));
+            platform = new CLPlatform(getPeer(pplat));
         }
         return platform;
     }
@@ -109,59 +75,16 @@ public class CLDevice extends CLAbstractEntity<cl_device_id> {
     	return byteOrder;
     }
 
+    private volatile ByteOrder kernelsDefaultByteOrder;
     /**
      * @deprecated Use {@link CLDevice#getByteOrder()}
      */
     @Deprecated
     public synchronized ByteOrder getKernelsDefaultByteOrder() {
-    	return getByteOrder();
-            /*
-            CLPlatform platform = getPlatform();
-            if (platform != null && platform.getVendor().toLowerCase().contains("nvidia"))
-                kernelsDefaultByteOrder = getByteOrder();
-            else {
-                CLContext context = JavaCL.createContext((Map)null, this);
-                CLQueue queue = context.createDefaultQueue();
-                try {
-                    int n = 16;
-
-                    CLIntBuffer inputMatchResult = context.createIntBuffer(CLMem.Usage.Output, n);
-                    float testValue = 12;
-                    CLFloatBuffer inPtr = context.createFloatBuffer(CLMem.Usage.Input, n);
-                    inPtr.write(queue, FloatBuffer.wrap(new float[] { testValue }), true);
-                    CLProgram program =
-                        context.createProgram(IOUtils.readText(CLDevice.class.getResourceAsStream("EndiannessTest.cl")))
-                        .defineMacro("TEST_VALUE", testValue)
-                        .build();
-
-                    CLKernel test = program.createKernel("testEndianness", inPtr, inPtr, inPtr, inputMatchResult);
-                    test.enqueueNDRange(queue, new int[] { n }, new int[] { 1 });
-                    queue.finish();
-
-                    IntBuffer b = NIOUtils.directInts(n, getByteOrder());
-                    inputMatchResult.read(queue, b, true);
-                    switch (b.get(0)) {
-                        case 1: // device endianness
-                            kernelsDefaultByteOrder = getByteOrder();
-                            break;
-                        case 2: // host endianness
-                            kernelsDefaultByteOrder = ByteOrder.nativeOrder();
-                            break;
-                        default:
-                            throw new RuntimeException("Default kernel argument endianness of this device couldn't be guessed out.");
-                    }
-
-                } catch (CLBuildException ex) {
-                    throw new RuntimeException("Default kernel argument endianness of this device couldn't be guessed out.", ex);
-                } catch (IOException ex) {
-                    throw new RuntimeException("Couldn't find internal resources needed to guess this device's kernel argument endianness.", ex);
-                } finally {
-                    queue.finish();
-                    System.gc();
-                    queue.release();
-                    context.release();
-                }
-            }//*/
+    	if (kernelsDefaultByteOrder == null) {
+    		kernelsDefaultByteOrder = ByteOrderHack.guessByteOrderNeededForBuffers(this);
+    	}
+    	return kernelsDefaultByteOrder;
     }
 
     /** Bit values for CL_DEVICE_EXECUTION_CAPABILITIES */
@@ -328,31 +251,35 @@ public class CLDevice extends CLAbstractEntity<cl_device_id> {
 
     @Override
     public String toString() {
-        return getName();
+        return getName() + " (" + getPlatform().getName() + ")";
     }
 
     /**
+#documentCallsFunction("clCreateCommandQueue")
      * Create an OpenCL execution queue on this device for the specified context.
      * @param context context of the queue to create
      * @return new OpenCL queue object
      */
     @SuppressWarnings("deprecation")
     public CLQueue createQueue(CLContext context, QueueProperties... queueProperties) {
-        Pointer<Integer> pErr = allocateInt();
-        long flags = 0;
+        #declareReusablePtrsAndPErr()
+		long flags = 0;
         for (QueueProperties prop : queueProperties)
             flags |= prop.value();
-        cl_command_queue queue = CL.clCreateCommandQueue(context.getEntity(), getEntity(), flags, pErr);
-        error(pErr.get());
+        long queue = CL.clCreateCommandQueue(context.getEntity(), getEntity(), flags, getPeer(pErr));
+        #checkPErr()
 
         return new CLQueue(context, queue, this);
     }
 
+    /**
+#documentCallsFunction("clCreateCommandQueue")
+     */
     @Deprecated
     public CLQueue createQueue(EnumSet<QueueProperties> queueProperties, CLContext context) {
-        Pointer<Integer> pErr = allocateInt();
-        cl_command_queue queue = CL.clCreateCommandQueue(context.getEntity(), getEntity(), QueueProperties.getValue(queueProperties), pErr);
-        error(pErr.get());
+        #declareReusablePtrsAndPErr()
+		long queue = CL.clCreateCommandQueue(context.getEntity(), getEntity(), QueueProperties.getValue(queueProperties), getPeer(pErr));
+        #checkPErr()
 
         return new CLQueue(context, queue, this);
     }

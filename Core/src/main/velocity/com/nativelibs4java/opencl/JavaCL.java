@@ -1,33 +1,4 @@
-/*
- * JavaCL - Java API and utilities for OpenCL
- * http://javacl.googlecode.com/
- *
- * Copyright (c) 2009-2011, Olivier Chafik (http://ochafik.com/)
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * 
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Olivier Chafik nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY OLIVIER CHAFIK AND CONTRIBUTORS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+#parse("main/Header.vm")
 package com.nativelibs4java.opencl;
 
 import static com.nativelibs4java.opencl.CLException.error;
@@ -45,6 +16,7 @@ import java.util.logging.*;
 import com.nativelibs4java.opencl.library.OpenCLLibrary;
 import com.nativelibs4java.opencl.library.OpenCLLibrary.cl_platform_id;
 import org.bridj.*;
+import org.bridj.ann.Ptr;
 
 import org.bridj.util.ProcessUtils;
 import org.bridj.util.StringUtils;
@@ -80,58 +52,110 @@ public class JavaCL {
 
 	private static int getPlatformIDs(int count, Pointer<cl_platform_id> out, Pointer<Integer> pCount) {
 		try {
-			return CL.clIcdGetPlatformIDsKHR(count, out, pCount);
+			return CL.clIcdGetPlatformIDsKHR(count, getPeer(out), getPeer(pCount));
 		} catch (Throwable th) {
-			return CL.clGetPlatformIDs(count, out, pCount);
+			return CL.clGetPlatformIDs(count, getPeer(out), getPeer(pCount));
 		}
 	}
 	
 	@org.bridj.ann.Library("OpenCLProbe") 
 	@org.bridj.ann.Convention(org.bridj.ann.Convention.Style.StdCall)
 	public static class OpenCLProbeLibrary {
-		static {
-			BridJ.setNativeLibraryActualName("OpenCLProbe", "OpenCL");
-			BridJ.register();
-		}
 		@org.bridj.ann.Optional
-		public native static synchronized int clGetPlatformIDs(int cl_uint1, Pointer<OpenCLLibrary.cl_platform_id > cl_platform_idPtr1, Pointer<Integer > cl_uintPtr1);
+		public native static synchronized int clGetPlatformIDs(int cl_uint1, Pointer<cl_platform_id > cl_platform_idPtr1, Pointer<Integer > cl_uintPtr1);
 		@org.bridj.ann.Optional
-		public native static synchronized int clIcdGetPlatformIDsKHR(int cl_uint1, Pointer<OpenCLLibrary.cl_platform_id > cl_platform_idPtr1, Pointer<Integer > cl_uintPtr1);
-		
-		public boolean isValid() {
-			Pointer<Integer> pCount = allocateInt();
-			int err;
+		public native static synchronized int clIcdGetPlatformIDsKHR(int cl_uint1, Pointer<cl_platform_id > cl_platform_idPtr1, Pointer<Integer > cl_uintPtr1);
+		@org.bridj.ann.Optional
+		public native static int clGetPlatformInfo(@Ptr long cl_platform_id1, int cl_platform_info1, @Ptr long size_t1, @Ptr long voidPtr1, @Ptr long size_tPtr1);
+	
+        #declareInfosGetter("infos", "clGetPlatformInfo")
+        
+        private static int getPlatformIDs(int count, Pointer<cl_platform_id> out, Pointer<Integer> pCount) {
+            try {
+                return clIcdGetPlatformIDsKHR(count, out, pCount);
+            } catch (Throwable th) {
+                return clGetPlatformIDs(count, out, pCount);
+            }
+        }
+        private static Pointer<cl_platform_id> getPlatformIDs() {
+            Pointer<Integer> pCount = allocateInt();
+            error(getPlatformIDs(0, null, pCount));
+
+            int nPlats = pCount.getInt();
+            if (nPlats == 0)
+                return null;
+
+            Pointer<cl_platform_id> ids = allocateTypedPointers(cl_platform_id.class, nPlats);
+            error(getPlatformIDs(nPlats, ids, null));
+            return ids;
+        }
+        public static boolean hasOpenCL1_0() {
+            Pointer<cl_platform_id> ids = getPlatformIDs();
+            if (ids == null)
+                return false;
+            
+            for (cl_platform_id id : ids)
+                if (isOpenCL1_0(id))
+                    return true;
+            return false;
+        }
+        public static boolean isOpenCL1_0(cl_platform_id platform) {
+            String version = infos.getString(getPeer(platform), OpenCLLibrary.CL_PLATFORM_VERSION);
+            return version.matches("OpenCL 1\\.0.*");
+        }
+		public static boolean isValid() {
 			try {
-				err = clIcdGetPlatformIDsKHR(0, null, pCount);
+                Pointer<cl_platform_id> ids = getPlatformIDs();
+                return ids != null;
 			} catch (Throwable th) {
-				try {
-					err = clGetPlatformIDs(0, null, pCount);
-				} catch (Throwable th2) {
-					return false;
-				}
+                return false;
 			}
-			return err == OpenCLLibrary.CL_SUCCESS && pCount.get() > 0;
 		}
 	}	
 
     static final OpenCLLibrary CL;
 	static {
+		if (Platform.isLinux()) {
+			String amdAppBase = "/opt/AMDAPP/lib";
+			BridJ.addLibraryPath(amdAppBase + "/" + (Platform.is64Bits() ? "x86_64" : "x86"));
+			BridJ.addLibraryPath(amdAppBase);
+		}
+        	boolean needsAdditionalSynchronization = false;
 		{
-			OpenCLProbeLibrary probe = new OpenCLProbeLibrary();
+			OpenCLProbeLibrary probe = null;
 			try {
+				try {
+					BridJ.setNativeLibraryActualName("OpenCLProbe", "OpenCL");
+					BridJ.register();
+				} catch (Throwable th) {}
+				
+				probe = new OpenCLProbeLibrary();
+				
 				if (!probe.isValid()) {
-					String alt;
-					if (Platform.is64Bits() && BridJ.getNativeLibraryFile(alt = "atiocl64") != null ||
+					BridJ.unregister(OpenCLProbeLibrary.class);
+					//BridJ.setNativeLibraryActualName("OpenCLProbe", "OpenCL");
+                   			String alt;
+					if (Platform.is64Bits() && (BridJ.getNativeLibraryFile(alt = "atiocl64") != null || BridJ.getNativeLibraryFile(alt = "amdocl64") != null) ||
 						BridJ.getNativeLibraryFile(alt = "atiocl32") != null ||
-						BridJ.getNativeLibraryFile(alt = "atiocl") != null) 
+						BridJ.getNativeLibraryFile(alt = "atiocl") != null ||
+						BridJ.getNativeLibraryFile(alt = "amdocl32") != null ||
+						BridJ.getNativeLibraryFile(alt = "amdocl") != null) 
 					{
-						log(Level.INFO, "Hacking around ATI's weird driver bugs (using atiocl library instead of OpenCL)", null); 
+						log(Level.INFO, "Hacking around ATI's weird driver bugs (using atiocl/amdocl library instead of OpenCL)", null); 
 						BridJ.setNativeLibraryActualName("OpenCL", alt);
 					}
+                    BridJ.register(OpenCLProbeLibrary.class);
 				}
+                
+                
+                if (probe.hasOpenCL1_0()) {
+                    needsAdditionalSynchronization = true;
+                    log(Level.WARNING, "At least one OpenCL platform uses OpenCL 1.0, which is not thread-safe: will use (slower) synchronized low-level bindings.");
+                }
 			} finally {
+				if (probe != null)
+					BridJ.unregister(OpenCLProbeLibrary.class);
 				probe = null;
-				BridJ.unregister(OpenCLProbeLibrary.class);
 			}
 		}
 		
@@ -154,7 +178,20 @@ public class JavaCL {
             
             
         }
-		CL = new OpenCLLibrary();
+        Class<? extends OpenCLLibrary> libraryClass = OpenCLLibrary.class;
+        if (needsAdditionalSynchronization) {
+            try {
+                libraryClass = BridJ.subclassWithSynchronizedNativeMethods(libraryClass);
+            } catch (Throwable ex) {
+                throw new RuntimeException("Failed to create a synchronized version of the OpenCL API bindings: " + ex, ex);
+            }
+        }
+        BridJ.register(libraryClass);
+        try {
+            CL = libraryClass.newInstance();
+        } catch (Throwable ex) {
+            throw new RuntimeException("Failed to instantiate library " + libraryClass.getName() + ": " + ex, ex);
+        }
 	}
 	
     /**
@@ -176,7 +213,7 @@ public class JavaCL {
         Pointer<Integer> pCount = allocateInt();
         error(getPlatformIDs(0, null, pCount));
 
-        int nPlats = pCount.get();
+        int nPlats = pCount.getInt();
         if (nPlats == 0)
             return new CLPlatform[0];
 
@@ -186,7 +223,7 @@ public class JavaCL {
         CLPlatform[] platforms = new CLPlatform[nPlats];
 
         for (int i = 0; i < nPlats; i++) {
-            platforms[i] = new CLPlatform(ids.get(i));
+            platforms[i] = new CLPlatform(ids.getSizeTAtOffset(i * Pointer.SIZE));
         }
         return platforms;
     }

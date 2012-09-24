@@ -1,33 +1,4 @@
-/*
- * JavaCL - Java API and utilities for OpenCL
- * http://javacl.googlecode.com/
- *
- * Copyright (c) 2009-2011, Olivier Chafik (http://ochafik.com/)
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * 
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of Olivier Chafik nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY OLIVIER CHAFIK AND CONTRIBUTORS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+#parse("main/Header.vm")
 package com.nativelibs4java.opencl;
 import java.util.Iterator;
 import java.util.Arrays;
@@ -111,30 +82,26 @@ import static org.bridj.Pointer.*;
  * To create a program from sources, please use see {@link CLContext#createProgram(java.lang.String[]) } 
  * @author Olivier Chafik
  */
-public class CLProgram extends CLAbstractEntity<cl_program> {
+public class CLProgram extends CLAbstractEntity {
 
     protected final CLContext context;
 
-	private static CLInfoGetter<cl_program> infos = new CLInfoGetter<cl_program>() {
-		@Override
-		protected int getInfo(cl_program entity, int infoTypeEnum, long size, Pointer out, Pointer<SizeT> sizeOut) {
-			return CL.clGetProgramInfo(entity, infoTypeEnum, size, out, sizeOut);
-		}
-	};
+	#declareInfosGetter("infos", "CL.clGetProgramInfo")
 
     CLDevice[] devices;
     CLProgram(CLContext context, CLDevice... devices) {
-        super(null, true);
+        super(0, true);
         this.context = context;
         this.devices = devices == null || devices.length == 0 ? context.getDevices() : devices;
     }
 	CLProgram(CLContext context, Map<CLDevice, byte[]> binaries, String source) {
-		super(null, true);
+		super(0, true);
 		this.context = context;
 		this.source = source;
 
 		setBinaries(binaries);
 	}
+    
 	protected void setBinaries(Map<CLDevice, byte[]> binaries) {
         if (this.devices == null) {
         		this.devices = new CLDevice[binaries.size()];
@@ -146,8 +113,8 @@ public class CLProgram extends CLAbstractEntity<cl_program> {
         if (binaries.size() != nDevices)
         		throw new IllegalArgumentException("Not enough binaries in provided map : expected " + nDevices + " (devices = " + Arrays.asList(devices) + "), got " + binaries.size() + " (" + binaries.keySet() + ")");
         Pointer<SizeT> lengths = allocateSizeTs(nDevices);
-		Pointer<cl_device_id> deviceIds = allocateTypedPointers(cl_device_id.class, nDevices);
-		Pointer<Pointer<Byte>> binariesArray = allocatePointers(paramType(Pointer.class, Byte.class), nDevices);
+		Pointer<SizeT> deviceIds = allocateSizeTs(nDevices);
+		Pointer<Pointer<?>> binariesArray = allocatePointers(nDevices);
 		Pointer<Byte>[] binariesMems = new Pointer[nDevices];
 
 		int iDevice = 0;
@@ -156,10 +123,10 @@ public class CLProgram extends CLAbstractEntity<cl_program> {
             if (binary == null)
             		throw new IllegalArgumentException("No binary for device " + device + " in provided binaries");
 
-            binariesArray.set(iDevice, binariesMems[iDevice] = pointerToBytes(binary));
-
-            lengths.set(iDevice, new SizeT(binary.length));
-            deviceIds.set(iDevice, device.getEntity());
+            long offset = iDevice * Pointer.SIZE;
+            binariesArray.setPointerAtOffset(offset, binariesMems[iDevice] = pointerToBytes(binary));
+            lengths.setSizeTAtOffset(offset, binary.length);
+            deviceIds.setSizeTAtOffset(offset, device.getEntity());
             
             iDevice++;
         }
@@ -167,12 +134,12 @@ public class CLProgram extends CLAbstractEntity<cl_program> {
         if (nDevices == 0)
         		return;
         	
-		Pointer<Integer> errBuff = allocateInt();
+        #declareReusablePtrsAndPErr()
         int previousAttempts = 0;
         Pointer<Integer> statuses = allocateInts(nDevices);
 		do {
-			entity = CL.clCreateProgramWithBinary(context.getEntity(), nDevices, deviceIds, lengths, binariesArray, statuses, errBuff);
-		} while (failedForLackOfMemory(errBuff.get(), previousAttempts++));
+			setEntity(CL.clCreateProgramWithBinary(context.getEntity(), nDevices, getPeer(deviceIds), getPeer(lengths), getPeer(binariesArray), getPeer(statuses), getPeer(pErr)));
+		} while (failedForLackOfMemory(pErr.getInt(), previousAttempts++));
 	}
 
     /**
@@ -270,7 +237,7 @@ public class CLProgram extends CLAbstractEntity<cl_program> {
     public static boolean passMacrosAsSources = true;
 
     public synchronized void allocate() {
-        if (entity != null)
+        if (isAllocated())
             throw new IllegalThreadStateException("Program was already allocated !");
 
         if (passMacrosAsSources) {
@@ -293,32 +260,53 @@ public class CLProgram extends CLAbstractEntity<cl_program> {
 		}
         
         String[] sources = this.sources.toArray(new String[this.sources.size()]);
+        Pointer<SizeT> pLengths = allocateSizeTs(sources.length);
         long[] lengths = new long[sources.length];
         for (int i = 0; i < sources.length; i++) {
-            lengths[i] = sources[i].length();
+            pLengths.setSizeTAtOffset(i * Pointer.SIZE, sources[i].length());
         }
-        Pointer<Integer> errBuff = allocateInt();
-        cl_program program;
+        
+        #declareReusablePtrsAndPErr()
+        long program;
 		int previousAttempts = 0;
+		Pointer<Pointer<Byte>> pSources = pointerToCStrings(sources);
 		do {
-			program = CL.clCreateProgramWithSource(context.getEntity(), sources.length, pointerToCStrings(sources), pointerToSizeTs(lengths), errBuff);
-		} while (failedForLackOfMemory(errBuff.get(0), previousAttempts++));
-        entity = program;
+			program = CL.clCreateProgramWithSource(
+				context.getEntity(), 
+				sources.length, 
+				getPeer(pSources),
+				getPeer(pLengths), 
+				getPeer(pErr)
+			);
+		} while (failedForLackOfMemory(pErr.getInt(), previousAttempts++));
+        setEntity(program);
     }
     
+    private boolean isAllocated() {
+    	return super.getEntity() != 0;
+    }
+    /*
     @Override
     protected synchronized cl_program getEntity() {
-        if (entity == null)
+        if (!isAllocated())
             allocate();
 
-        return entity;
+        return super.getEntity();
+    }*/
+    
+    @Override
+    protected synchronized long getEntity() {
+        if (!isAllocated())
+            allocate();
+
+        return super.getEntity();
     }
 	
     List<String> includes;
     
     /**
      * Add a path (file or URL) to the list of paths searched for included files.<br>
-     * OpenCL kernels may contain <code>#include "subpath/file.cl"</code> statements.<br>
+     * OpenCL kernels may contain <code>\#include "subpath/file.cl"</code> statements.<br>
      * This automatically adds a "-Ipath" argument to the compilator's command line options.<br>
      * Note that it's not necessary to add include paths for files that are in the classpath.
      * @param path A file or URL that points to the root path from which includes can be resolved. 
@@ -330,7 +318,7 @@ public class CLProgram extends CLAbstractEntity<cl_program> {
         resolvedInclusions = null;
     }
 	public synchronized void addSource(String src) {
-        if (entity != null)
+        if (isAllocated())
             throw new IllegalThreadStateException("Program was already allocated : cannot add sources anymore.");
         sources.add(src);
         resolvedInclusions = null;
@@ -700,21 +688,23 @@ public class CLProgram extends CLAbstractEntity<cl_program> {
 		"os.name"
 	};
     
-	protected Set<String> getProgramBuildInfo(cl_program pgm, Pointer<cl_device_id> deviceIds) {
+	protected Set<String> getProgramBuildInfo(long pgm, Pointer<SizeT> deviceIds) {
 		Pointer<SizeT> len = allocateSizeT();
 		int bufLen = 2048 * 32; //TODO find proper size
 		Pointer<?> buffer = allocateBytes(bufLen);
 
 		Set<String> errs = new HashSet<String>();
 		if (deviceIds == null) {
-			error(CL.clGetProgramBuildInfo(pgm, null, CL_PROGRAM_BUILD_LOG, bufLen, buffer, len));
+			error(CL.clGetProgramBuildInfo(pgm, 0, CL_PROGRAM_BUILD_LOG, bufLen, getPeer(buffer), getPeer(len)));
 			String s = buffer.getCString();
-			errs.add(s);
-		} else {
-			for (cl_device_id device : deviceIds) {
-				error(CL.clGetProgramBuildInfo(pgm, device, CL_PROGRAM_BUILD_LOG, bufLen, buffer, len));
-				String s = buffer.getCString();
+			if (s.length() > 0)
 				errs.add(s);
+		} else {
+			for (SizeT device : deviceIds) {
+				error(CL.clGetProgramBuildInfo(pgm, device.longValue(), CL_PROGRAM_BUILD_LOG, bufLen, getPeer(buffer), getPeer(len)));
+				String s = buffer.getCString();
+				if (s.length() > 0)
+					errs.add(s);
 			}
 		}
 		return errs;
@@ -748,11 +738,11 @@ public class CLProgram extends CLAbstractEntity<cl_program> {
 				}
         		} catch (Throwable ex) {
         			assert log(Level.WARNING, "Failed to load cached program : " + ex.getMessage());
-        			entity = null;
+        			setEntity(0);
         		}
         }
         
-        if (entity == null)
+        if (!isAllocated())
             allocate();
 
         Runnable deleteTempFiles = null;
@@ -764,18 +754,25 @@ public class CLProgram extends CLAbstractEntity<cl_program> {
 			}
         
         int nDevices = devices.length;
-        Pointer<cl_device_id> deviceIds = null;
+        Pointer<SizeT> deviceIds = null;
         if (nDevices != 0) {
-            deviceIds = allocateTypedPointers(cl_device_id.class, nDevices);
+            deviceIds = allocateSizeTs(nDevices);
             for (int i = 0; i < nDevices; i++)
-                deviceIds.set(i, devices[i].getEntity());
+                deviceIds.setSizeTAtOffset(i * Pointer.SIZE, devices[i].getEntity());
         }
-        int err = CL.clBuildProgram(getEntity(), nDevices, deviceIds, pointerToCString(getOptionsString()), null, null);
-        //int err = CL.clBuildProgram(getEntity(), 0, null, getOptionsString(), null, null);
+        Pointer<Byte> pOptions = pointerToCString(getOptionsString());
+        int err = CL.clBuildProgram(
+        	getEntity(), 
+        	nDevices, 
+        	getPeer(deviceIds), 
+        	getPeer(pOptions), 
+        	0, 
+        	0
+		);
         Set<String> errors = getProgramBuildInfo(getEntity(), deviceIds);
         
-        if (err != CL_SUCCESS) {//BUILD_PROGRAM_FAILURE) {
-            throw new CLBuildException(this, "Compilation failure : " + errorString(err), errors);
+        if (err != CL_SUCCESS) {
+            throw new CLBuildException(this, "Compilation failure : " + errorString(err) + " (devices: " + Arrays.asList(getDevices()) + ")", errors);
         } else {
         	if (!errors.isEmpty())
         		JavaCL.log(Level.INFO, "Build info :\n\t" + StringUtils.implode(errors, "\n\t"));	
@@ -806,6 +803,7 @@ public class CLProgram extends CLAbstractEntity<cl_program> {
     }
 
 	/**
+#documentCallsFunction("clCreateKernelsInProgram")
 	 * Return all the kernels found in the program.
 	 */
 	public CLKernel[] createKernels() throws CLBuildException {
@@ -815,21 +813,22 @@ public class CLProgram extends CLAbstractEntity<cl_program> {
         }
 		Pointer<Integer> pCount = allocateInt();
 		int previousAttempts = 0;
-		while (failedForLackOfMemory(CL.clCreateKernelsInProgram(getEntity(), 0, null, pCount), previousAttempts++)) {}
+		while (failedForLackOfMemory(CL.clCreateKernelsInProgram(getEntity(), 0, 0, getPeer(pCount)), previousAttempts++)) {}
 
-		int count = pCount.get();
-		Pointer<cl_kernel> kerns = allocateTypedPointers(cl_kernel.class, count);
+		int count = pCount.getInt();
+		Pointer<SizeT> kerns = allocateSizeTs(count);
 		previousAttempts = 0;
-		while (failedForLackOfMemory(CL.clCreateKernelsInProgram(getEntity(), count, kerns, pCount), previousAttempts++)) {}
+		while (failedForLackOfMemory(CL.clCreateKernelsInProgram(getEntity(), count, getPeer(kerns), getPeer(pCount)), previousAttempts++)) {}
 
 		CLKernel[] kernels = new CLKernel[count];
 		for (int i = 0; i < count; i++)
-			kernels[i] = new CLKernel(this, null, kerns.get(i));
+			kernels[i] = new CLKernel(this, null, kerns.getSizeTAtOffset(i * Pointer.SIZE));
 
 		return kernels;
 	}
 
     /**
+#documentCallsFunction("clCreateKernel")
      * Find a kernel by its functionName, and optionally bind some arguments to it.
      */
     public CLKernel createKernel(String name, Object... args) throws CLBuildException {
@@ -837,12 +836,13 @@ public class CLProgram extends CLAbstractEntity<cl_program> {
             if (!built)
                 build();
         }
-        Pointer<Integer> errBuff = allocateInt();
-        cl_kernel kernel;
+        #declareReusablePtrsAndPErr()
+        Pointer<Byte> pName = pointerToCString(name);
+		long kernel;
 		int previousAttempts = 0;
 		do {
-			kernel = CL.clCreateKernel(getEntity(), pointerToCString(name), errBuff);
-		} while (failedForLackOfMemory(errBuff.get(0), previousAttempts++));
+			kernel = CL.clCreateKernel(getEntity(), getPeer(pName), getPeer(pErr));
+		} while (failedForLackOfMemory(pErr.getInt(), previousAttempts++));
 
         CLKernel kn = new CLKernel(this, name, kernel);
         if (args.length != 0)
