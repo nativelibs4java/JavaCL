@@ -4,6 +4,13 @@ A comprehensive documentation is available on its [WebSite](javacl.googlecode.co
 
 It was previously hosted on [ochafik/nativelibs4java](http://github.com/ochafik/nativelibs4java).
 
+# Quick links
+
+* [CHANGELOG](https://github.com/ochafik/JavaCL/blob/master/CHANGELOG)
+* [FAQ](http://code.google.com/p/javacl/wiki/FAQ)
+* [JavaDoc](http://nativelibs4java.sourceforge.net/javacl/api/stable/)
+* [Credits and License](http://code.google.com/p/bridj/wiki/CreditsAndLicense)
+
 # Building
   ```
   git clone http://github.com/ochafik/JavaCL.git
@@ -14,3 +21,7 @@ It was previously hosted on [ochafik/nativelibs4java](http://github.com/ochafik/
 
 Please use the [mailing-list](https://groups.google.com/forum/#!forum/nativelibs4java) and [file bugs](https://github.com/ochafik/nativelibs4java/issues/new).
 
+# TODO
+
+* Finalize OpenCL 1.2 support
+* Push a final 1.0 version
