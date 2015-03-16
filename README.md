@@ -7,6 +7,7 @@ It was previously hosted on [ochafik/nativelibs4java](http://github.com/ochafik/
 # Quick links
 
 [![Join the chat at https://gitter.im/ochafik/JavaCL](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ochafik/JavaCL?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/ctrimble/JavaCL.svg?branch=feature_travis-build)](https://travis-ci.org/ctrimble/JavaCL)
 
 * [CHANGELOG](https://github.com/ochafik/JavaCL/blob/master/CHANGELOG)
 * [FAQ](http://code.google.com/p/javacl/wiki/FAQ)
