@@ -745,6 +745,23 @@ public class CLDevice extends CLAbstractEntity {
         return ret;
     }
 
+    /**
+     * Returns the set of supported affinity domains for partitioning the device
+     * using {@link #createSubDevicesByAffinity(AffinityDomain)}
+     */
+    @InfoName("CL_DEVICE_PARTITION_AFFINITY_DOMAIN")
+    public EnumSet<AffinityDomain> getPartitionAffinityDomains() {
+        EnumSet<AffinityDomain> ret = EnumSet.noneOf(AffinityDomain.class);
+        Pointer<?> ptr = infos.getPointer(getEntity(), CL_DEVICE_PARTITION_AFFINITY_DOMAIN);;
+        if (ptr != null) {
+            Pointer<SizeT> props = ptr.as(SizeT.class);
+            for (long i = 0, n = props.getValidElements(); i < n; i++) {
+                ret.add(AffinityDomain.getEnum(props.getSizeTAtIndex(i)));
+            }
+        }
+        return ret;
+    }
+
     @InfoName("CL_DEVICE_PARTITION_MAX_SUB_DEVICES")
     public int getPartitionMaxSubDevices() {
         return infos.getInt(getEntity(), CL_DEVICE_PARTITION_MAX_SUB_DEVICES);

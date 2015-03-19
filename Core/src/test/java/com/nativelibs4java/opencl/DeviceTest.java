@@ -37,6 +37,7 @@ public class DeviceTest {
         System.out.println(device);
         System.out.println("\tmax sub-devices: " + device.getPartitionMaxSubDevices());
         System.out.println("\tpartition properties: " + device.getPartitionProperties());
+        System.out.println("\tpartition domains: " + device.getPartitionAffinityDomains());
     }
     
     @Parameterized.Parameters
