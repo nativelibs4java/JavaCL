@@ -18,7 +18,6 @@ import org.junit.Test;
 
 import com.nativelibs4java.opencl.CLTestUtils.Action2;
 import com.nativelibs4java.opencl.CLTestUtils.ExecResult;
-import com.nativelibs4java.test.MiscTestUtils;
 
 //import com.nativelibs4java.scalacl.*;
 /// @see http://ati.amd.com/technology/streamcomputing/intro_opencl.html#simple

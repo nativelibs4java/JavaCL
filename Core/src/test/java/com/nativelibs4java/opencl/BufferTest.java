@@ -15,7 +15,6 @@ import java.nio.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.nativelibs4java.test.MiscTestUtils;
 import com.nativelibs4java.util.NIOUtils;
 import org.bridj.*;
 import java.nio.ByteOrder;

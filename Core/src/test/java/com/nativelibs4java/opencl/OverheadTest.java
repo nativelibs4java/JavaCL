@@ -13,7 +13,6 @@ import org.junit.*;
 import org.bridj.Pointer;
 import org.bridj.Platform;
 import static org.bridj.Pointer.*;
-import com.nativelibs4java.test.MiscTestUtils;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

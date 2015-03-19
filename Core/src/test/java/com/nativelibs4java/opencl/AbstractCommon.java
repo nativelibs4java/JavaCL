@@ -8,7 +8,6 @@ package com.nativelibs4java.opencl;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
-import com.nativelibs4java.test.MiscTestUtils;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.After;
@@ -27,12 +26,6 @@ public abstract class AbstractCommon {
 	CLQueue queue;
 	CLDevice device;
 	CLImageFormat[] formatsRead2D, formatsRead3D, formatsWrite2D, formatsWrite3D, formatsReadWrite2D, formatsReadWrite3D;
-	/*
-    @BeforeClass
-    public static void setup() {
-        MiscTestUtils.protectJNI();
-    }
-    */
     
     static boolean listedPlatforms;
     

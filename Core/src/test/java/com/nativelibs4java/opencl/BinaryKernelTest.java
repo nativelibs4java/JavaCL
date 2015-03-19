@@ -8,7 +8,6 @@ import org.junit.Test;
 
 import org.bridj.Pointer;
 import static org.bridj.Pointer.*;
-import com.nativelibs4java.test.MiscTestUtils;
 import java.util.List;
 import org.junit.Ignore;
 import org.junit.runners.Parameterized;

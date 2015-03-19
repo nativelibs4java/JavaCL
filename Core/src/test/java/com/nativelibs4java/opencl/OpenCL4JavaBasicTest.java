@@ -12,7 +12,6 @@ import java.nio.FloatBuffer;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.nativelibs4java.test.MiscTestUtils;
 import com.nativelibs4java.util.NIOUtils;
 
 public class OpenCL4JavaBasicTest {
