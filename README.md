@@ -1,4 +1,4 @@
-[![Join the chat at https://gitter.im/nativelibs4java/JavaCL](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/nativelibs4java/JavaCL?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/nativelibs4java/JavaCL.svg?branch=feature_travis-build)](https://travis-ci.org/nativelibs4java/JavaCL)
+[![Maven Central](https://img.shields.io/maven-central/v/com.nativelibs4java/javacl.svg)]() [![Build Status](https://travis-ci.org/nativelibs4java/JavaCL.svg?branch=feature_travis-build)](https://travis-ci.org/nativelibs4java/JavaCL) [![Join the chat at https://gitter.im/nativelibs4java/JavaCL](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/nativelibs4java/JavaCL?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [JavaCL](http://javacl.googlecode.com) provides OpenCL bindings for Java. It wraps low-level bindings in a clean object-oriented API, which adds a few goodies.
 
