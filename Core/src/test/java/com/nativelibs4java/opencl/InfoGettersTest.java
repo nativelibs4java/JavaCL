@@ -6,6 +6,10 @@ package com.nativelibs4java.opencl;
 
 import static org.junit.Assert.assertFalse;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
