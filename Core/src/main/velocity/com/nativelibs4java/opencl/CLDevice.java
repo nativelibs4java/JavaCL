@@ -727,15 +727,27 @@ public class CLDevice extends CLAbstractEntity {
             return EnumValues.getValue(set);
         }
 
-        public static EnumSet<PartitionType> getEnumSet(long v) {
-            return EnumValues.getEnumSet(v, PartitionType.class);
+        public static PartitionType getEnum(long v) {
+            return EnumValues.getEnum(v, PartitionType.class);
         }
     }
 
-	/** TODO */
     @InfoName("CL_DEVICE_PARTITION_PROPERTIES")
     public EnumSet<PartitionType> getPartitionProperties() {
-        return PartitionType.getEnumSet(infos.getIntOrLong(getEntity(), CL_DEVICE_PARTITION_PROPERTIES));
+        EnumSet<PartitionType> ret = EnumSet.noneOf(PartitionType.class);
+        Pointer<?> ptr = infos.getPointer(getEntity(), CL_DEVICE_PARTITION_PROPERTIES);;
+        if (ptr != null) {
+            Pointer<SizeT> props = ptr.as(SizeT.class);
+            for (long i = 0, n = props.getValidElements(); i < n; i++) {
+                ret.add(PartitionType.getEnum(props.getSizeTAtIndex(i)));
+            }
+        }
+        return ret;
+    }
+
+    @InfoName("CL_DEVICE_PARTITION_MAX_SUB_DEVICES")
+    public int getPartitionMaxSubDevices() {
+        return infos.getInt(getEntity(), CL_DEVICE_PARTITION_MAX_SUB_DEVICES);
     }
 
 	/** TODO */

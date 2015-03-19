@@ -14,34 +14,49 @@ import java.nio.*;
 
 import org.junit.*;
 
-import com.nativelibs4java.test.MiscTestUtils;
 import com.nativelibs4java.util.NIOUtils;
 import org.bridj.*;
 import java.nio.ByteOrder;
 import static org.bridj.Pointer.*;
 import java.nio.ByteOrder;
-import java.util.List;
+import java.util.*;
+import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 /**
  *
  * @author ochafik
  */
-public class DeviceTest extends AbstractCommon {
+@RunWith(Parameterized.class)
+public class DeviceTest {
+    private final CLDevice device;
+
     public DeviceTest(CLDevice device) {
-        super(device);
+        this.device = device;
+
+        System.out.println(device);
+        System.out.println("\tmax sub-devices: " + device.getPartitionMaxSubDevices());
+        System.out.println("\tpartition properties: " + device.getPartitionProperties());
     }
     
     @Parameterized.Parameters
     public static List<Object[]> getDeviceParameters() {
-        return AbstractCommon.getDeviceParameters();
+        List<Object[]> ret = new ArrayList<Object[]>();
+        for (CLPlatform platform : JavaCL.listPlatforms()) {
+            for (CLDevice device : platform.listAllDevices(true)) {
+                ret.add(new Object[] { device });
+            }
+        }
+        return ret;
     }
-    @Ignore
+
     @Test
     public void testSplitEqually() {
+        if (!device.getPartitionProperties().contains(CLDevice.PartitionType.Equally)) return;
+
         int computeUnits = device.getMaxComputeUnits();
         System.out.println("computeUnits = " + computeUnits);
-        int subComputeUnits = 1;//computeUnits / 2;
+        int subComputeUnits = computeUnits / 2;
         
         CLDevice[] subDevices = device.createSubDevicesEqually(subComputeUnits);
         for (CLDevice subDevice : subDevices) {
@@ -49,9 +64,11 @@ public class DeviceTest extends AbstractCommon {
             checkParent(device, subDevice);
         }
     }
-    @Ignore
+
     @Test
     public void testSplitByCounts() {
+        if (!device.getPartitionProperties().contains(CLDevice.PartitionType.ByCounts)) return;
+
         long[] counts = new long[] { 2, 4, 8 };
         CLDevice[] subDevices = device.createSubDevicesByCounts(counts);
         assertEquals(counts.length, subDevices.length);
@@ -63,9 +80,11 @@ public class DeviceTest extends AbstractCommon {
             i++;
         }
     }
-    @Ignore
+
     @Test
     public void testSplitByAffinity() {
+        if (!device.getPartitionProperties().contains(CLDevice.PartitionType.ByAffinityDomain)) return;
+
         CLDevice[] subDevices = device.createSubDevicesByAffinity(CLDevice.AffinityDomain.NextPartitionable);
         assertTrue(subDevices.length > 1);
         for (CLDevice subDevice : subDevices) {
@@ -76,7 +95,7 @@ public class DeviceTest extends AbstractCommon {
     private void checkParent(CLDevice parent, CLDevice child) {
         assertSame(device, child.getParent());
         // Force a get info CL_DEVICE_PARENT_DEVICE.
-        assertSame(device, new CLDevice(platform, null, child.getEntity(), false).getParent());
+        assertSame(device, new CLDevice(device.getPlatform(), null, child.getEntity(), false).getParent());
     }
 
 }
