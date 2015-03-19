@@ -1,48 +1,69 @@
-Current development version (1.0-SNAPSHOT)
+## Current development version (1.0-SNAPSHOT)
 
 ...
 
-Version 1.0.0-RC4 (20150308)
+## Version 1.0.0-RC4 (20150308)
 
 - Dropped Blas artifact from main deployment (requires addional repo since ujmp is not in Maven Central)
 - Dropped support for JNA variant of JavaCL. Migration is highly encouraged to get more features and bugfixes: https://code.google.com/p/javacl/wiki/MigratingFromJNAToBridJ
 - Updated to BridJ 0.7 (brings fixes and lots of performance enhancements) 
 - Optimized allocation of native memory throughout the library (reusing thread-local pointer pools)
 - Optimized (CLDevice, CLPlatform).hasExtension
-- Added basic handling of structs in JavaCL Generator (issue #421, issue #422, issue #423)
+- Added basic handling of structs in JavaCL Generator ([issue nativelibs4java#421]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/421), [issue nativelibs4java#422]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/422), [issue nativelibs4java#423]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/423))
 - Added CLBuffer.copyTo, .copyBytesTo, .copyElementsTo
-- Added CLBuffer.fillBuffer to support OpenCL 1.2 clEnqueueFillBuffer (issue #232)
+- Added CLBuffer.fillBuffer to support OpenCL 1.2 clEnqueueFillBuffer ([issue nativelibs4java#232]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/232))
 - Added CLDevice.getParent()
 - Added CLDevice.getPrintfBufferSize(), .isPreferredInteropUserSync(), .isLinkerAvailable()
-- Added CLImage.copyTo (issue #508)
-- Added CLImage.fillImage (issue #232)
-- Added CLPlatform.unloadPlatformCompiler() with automatic switch between OpenCL 1.1 clUnloadCompiler and OpenCL 1.2 clUnloadPlatformCompiler (issue #232)
-- Added CLQueue.enqueueBarrier & .enqueueMarker to support clEnqueueBarrierWithWaitList & clEnqueueMarkerWithWaitList (switching between OpenCL 1.1 and OpenCL 1.2 variants automatically) (issue #232)
-- Added CLQueue.enqueueMigrateMemObjects (issue #232)
+- Added CLImage.copyTo ([issue nativelibs4java#508]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/508))
+- Added CLImage.fillImage ([issue nativelibs4java#232]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/232))
+- Added CLPlatform.unloadPlatformCompiler() with automatic switch between OpenCL 1.1 clUnloadCompiler and OpenCL 1.2 clUnloadPlatformCompiler ([issue nativelibs4java#232]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/232))
+- Added CLQueue.enqueueBarrier &amp; .enqueueMarker to support clEnqueueBarrierWithWaitList & clEnqueueMarkerWithWaitList (switching between OpenCL 1.1 and OpenCL 1.2 variants automatically) ([issue nativelibs4java#232]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/232))
+- Added CLQueue.enqueueMigrateMemObjects ([issue nativelibs4java#232]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/232))
 - Added JAVACL_LOG_CALLS=1 / -Djavacl.logCalls=true to log every native call (similar to BRIDJ_LOG_CALLS except it prints the parameter and return values)
-- Added many missing CLDevice 1.2 info getters (issue #232),
-- Added MapFlags.WriteInvalidateRegion (CL_MAP_WRITE_INVALIDATE_REGION from OpenCL 1.2) (issue #232)
+- Added many missing CLDevice 1.2 info getters ([issue nativelibs4java#232]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/232)),
+- Added MapFlags.WriteInvalidateRegion (CL_MAP_WRITE_INVALIDATE_REGION from OpenCL 1.2) ([issue nativelibs4java#232]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/232))
 - Fixed crash in CLPlatform.getBinaries()
-- Fixed excessive logs for deprecated features and missing OpenCL 1.1 and 1.2 functions (especially if version < deprecatedVersion)
-- Fixed issue #387: don't call clReleaseDevice (OpenCL 1.2) unless explicitly needed
-- Fixed issue #397: crash on Radeon due to bug in driver (attempts to get the source from a program created with clCreateProgramWithBinary yields a segfault)
-- Fixed issue #397: major bug in CLProgram
-- Fixed issue #420: horrible random native crash (double release, found with new -Dbridj.debug.pointer.releases=true).
-- Fixed issue #453: don't try to load cached binaries for programs created from binaries!
-- Fixed issue #455: when reading binaries, skip devices that are not allowed
-- Fixed issue #479: avoid some NPEs in CLProgram.getProgramBuildInfo
-- Fixed typo: CLDevice.getOpenCLVersion -> getOpenCLCVersion
+- Fixed excessive logs for deprecated features and missing OpenCL 1.1 and 1.2 functions (especially if version &lt; deprecatedVersion)
+- Fixed [issue nativelibs4java#387]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/387): don't call clReleaseDevice (OpenCL 1.2) unless explicitly needed
+- Fixed [issue nativelibs4java#397]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/397): crash on Radeon due to bug in driver (attempts to get the source from a program created with clCreateProgramWithBinary yields a segfault)
+- Fixed [issue nativelibs4java#397]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/397): major bug in CLProgram
+- Fixed [issue nativelibs4java#420]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/420): horrible random native crash (double release, found with new -Dbridj.debug.pointer.releases=true).
+- Fixed [issue nativelibs4java#453]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/453): don't try to load cached binaries for programs created from binaries!
+- Fixed [issue nativelibs4java#455]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/455): when reading binaries, skip devices that are not allowed
+- Fixed [issue nativelibs4java#479]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/479): avoid some NPEs in CLProgram.getProgramBuildInfo
+- Fixed typo: CLDevice.getOpenCLVersion -&gt; getOpenCLCVersion
 
-Version 1.0.0-RC3 (20130107)
+## Version 1.0.0-RC3 (20130107)
 
 - Fixed nasty regression in getBestDevice !
 - Fixed ati byte order hack
 - Fixed byte order hack for ATI platforms
 - Fixes / optimized event callbacks (but broke API: CLEvent.EventCallback now only takes the completion status as argument, not the event anymore)
 - Fixed library probe
-- Fixed handling of image2d_t and image3d_t in Maven plugin (contrib. from Remi Emonet, request #308 and issue #307)
-- Fixed OpenGL interop on Windows (issue #312)
-- Fixed error about mismatching byte order for byte buffers, and replaced mentions to getKernelsDefaultByteOrder() by getByteOrder() (issue #336)
+- Fixed handling of image2d_t and image3d_t in Maven plugin (contrib. from Remi Emonet, request #308 and [issue nativelibs4java#307]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/307))
+- Fixed OpenGL interop on Windows ([issue nativelibs4java#312]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/312))
+- Fixed error about mismatching byte order for byte buffers, and replaced mentions to getKernelsDefaultByteOrder() by getByteOrder() ([issue nativelibs4java#336]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/336))
 - Fixed AMD App 2.7 Linux library loading code for 
 - Fixed AMD download link in demos.
 - Added CLEvent.FIRE_AND_FORGET to avoid returning events from all the methods that accept a vararg eventsToWaitFor.
@@ -55,26 +76,32 @@ Version 1.0.0-RC3 (20130107)
 - Deprecated CLKernel.enqueueNDRange with int[] parameters
 - Return CLUserEvent from CLContext.createUserEvent();
 
-Version 1.0.0-RC2 (20120415, commit 6bc061dfce06b941086a29f696195e82fbaffbdc)
+## Version 1.0.0-RC2 (20120415, commit 6bc061dfce06b941086a29f696195e82fbaffbdc)
 
 - Release artifacts are available in Maven Central
 - Added support for sub-images reading/writing from/to CLImage2D (slower than with full images)
-- Fixed endianness issues with CLBuffer (issue #80)
-- Fixed migration of cached binaries to newer versions of OS (e.g. upgrading from Snow Leopard to Lion) (issue #81)
-- Fixed handling compiler options containing spaces (issue #274)
-- Fixed tutorial artifact pom repositories (issue #279)
+- Fixed endianness issues with CLBuffer ([issue nativelibs4java#80]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/80))
+- Fixed migration of cached binaries to newer versions of OS (e.g. upgrading from Snow Leopard to Lion) ([issue nativelibs4java#81]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/81))
+- Fixed handling compiler options containing spaces ([issue nativelibs4java#274]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/274))
+- Fixed tutorial artifact pom repositories ([issue nativelibs4java#279]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/279))
 - Fixed many Javadoc typos
-- Fixed support of Intel's OpenCL Windows runtime (issue #297)
+- Fixed support of Intel's OpenCL Windows runtime ([issue nativelibs4java#297]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/297))
 - Enhanced LocalSize API (added static factory methods for all primitive types)
 - Deprecated CLContext.getKernelsDefaultByteOrder() and CLDevice.getKernelsDefaultByteOrder()
-- Added more informative exceptions when passing null pointers to CLBuffer.writeBytes (issue #257)
+- Added more informative exceptions when passing null pointers to CLBuffer.writeBytes ([issue nativelibs4java#257]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/257))
 - Updated to OpenCL 1.2 headers
 - Added -cl-nv-verbose, -cl-nv-maxrregcount, -cl-nv-opt-level + proper log even without error when nv-verbose is set
 - Enhanced handling of endianness : warn when creating contexts with devices that have mismatching endianness, throw when creating buffer out of Buffer / Pointer with bad endianness
 - Changed signature of CLPlatform.listDevices (now takes a single CLDevice.Type, including All, instead of an EnumSet thereof)
 - Moved sources to github (https://github.com/ochafik/nativelibs4java/tree/master/libraries/OpenCL)
 
-Version 1.0.0-RC1 (r2130, 20110621)
+## Version 1.0.0-RC1 (r2130, 20110621)
 
 - BridJ version now becomes the default : the JNA version is still maintained and available with all Maven artifact ids suffixed with "-jna" (BridJ-based JavaCL's main artifact is now "javacl", while the JNA-based version is "javacl-jna")  
 - added simple Fourier-analysis classes (package com.nativelibs4java.opencl.util.fft), with double and float variants, usable with primitive arrays or OpenCL buffers :
@@ -90,21 +117,24 @@ Version 1.0.0-RC1 (r2130, 20110621)
 - added CLBuffer.copyTo(CLQueue, CLMem destination, CLEvent...) and CLBuffer.emptyClone(Usage)
 - added NIOUtils.indirectBuffer(size, bufferClass)
 - added CLContext.toString
-- deprecated CLXXXBuffer in favor of CLBuffer<XXX> (CLIntBuffer becomes CLBuffer<Integer>, etc...)
+- deprecated CLXXXBuffer in favor of CLBuffer&lt;XXX&gt; (CLIntBuffer becomes CLBuffer<Integer>, etc...)
 - changed CLContext.createBuffer(Usage, length, class) to createBuffer(Usage, class, length) to match the JavaCL/BridJ API (and provoke migration issues : people should now use a primitive class rather than an NIO buffer class !!!
-- complete rewrite of CLBuffer genericity to unify with the BridJ port : CLBuffer<DoubleBuffer> is now CLBuffer<Double>, and CLBuffer.read/write/map are no longer strongly typed (it is implicitely typed with Buffer subclasses for compatibility with existing code). The BridJ port will be favoured, and its read/write/map methods use typed Pointer<T>.
+- complete rewrite of CLBuffer genericity to unify with the BridJ port : CLBuffer&lt;DoubleBuffer&gt; is now CLBuffer<Double>, and CLBuffer.read/write/map are no longer strongly typed (it is implicitely typed with Buffer subclasses for compatibility with existing code). The BridJ port will be favoured, and its read/write/map methods use typed Pointer<T>.
 - complete rewrite of UJMP Matrix implementation, using principles borrowed from ScalaCL
-- fixed issue #66 (create temp files in ~/.javacl subdirectories instead of /tmp)
+- fixed [issue nativelibs4java#66]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/66) (create temp files in ~/.javacl subdirectories instead of /tmp)
 - fixed OpenGL sharing on MacOS X
 - fixed CLProgram.getBinaries() in some cases
 - fixed CLBuffer.read on indirect buffers
 - fixed NPE that happens with null varargs CLEvent[] array
 - fixed length = 1 case in reduction utility
-- fixed ATI detection ("ATI Stream" now replaced by "AMD Accelerated Parallel Processing", cf. Csaba's comment in issue #39)
-- fixed issue #55 : applied Kazo Csaba's patch to fix the bounds of CLBuffer.map's returned buffer
+- fixed ATI detection ("ATI Stream" now replaced by "AMD Accelerated Parallel Processing", cf. Csaba's comment in [issue nativelibs4java#39]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/39))
+- fixed [issue nativelibs4java#55]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/55) : applied Kazo Csaba's patch to fix the bounds of CLBuffer.map's returned buffer
 - fixed inheritance of CLBuildException (now derives from CLException)
 
-Version 1.0-beta-6 (r1637, 20100204)
+## Version 1.0-beta-6 (r1637, 20100204)
 
 - Fixed support of ATI Stream 2.3 (CPU)
 - New interactive image kernel demo : lets you edit and test image kernels in a snap (bundled with a few samples) 
@@ -120,22 +150,29 @@ Version 1.0-beta-6 (r1637, 20100204)
 - Added LibCL : growing collection of OpenCL functions that can be included from any JavaCL kernel
 - CLKernel.enqueueNDRange has a new overload without localWorkSizes argument (it's then adjusted to a good value by the OpenCL implementation).
 - ScalaCLv2 was rewritten to fit nicely into Scala's collections framework.
-- Added CLContext.createProgram(Map<CLDevice, byte[]>) to create from saved binaries (contribution from Kazo Csaba, issue #30)
+- Added CLContext.createProgram(Map&lt;CLDevice, byte[]&gt;) to create from saved binaries (contribution from Kazo Csaba, [issue nativelibs4java#30]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/30))
 - Added CLProgram.addBuildOption(String)
 - Fixed CLBuffer.copyTo
-- Demos now use the latest jogamp JOGL binaries (see the updated build instructions : http://code.google.com/p/javacl/wiki/Build)
-
-Version 1.0-beta-5 (r1067, 20100717)
+- Demos now use the latest jogamp JOGL binaries (see the updated build instructions : [http://code.google.com/p/javacl/wiki/Build)
+](http://code.google.com/p/javacl/wiki/Build)
+)
+## Version 1.0-beta-5 (r1067, 20100717)
 
 - Now using a nice configuration dialog when launching ParticlesDemo : has
 optional OpenCL settings with "Fastest", "Normal" and "Safest" presets +
 detailed platform and device choice (with optional OpenGL sharing choice).
 - Added optional context properties map argument to JavaCL.createContext (can be nulled
 out)
-- Fixed issue #18: CLImage.write calls enqueueImageRead !
-- Documented workaround for Linux crashes (issue #20) : http://code.google.com/p/javacl/wiki/TroubleShootingJavaCLOnLinux
-- Fixed issue #21: NIOUtils.put() doesn't accept ByteBuffer
-- Fixed issue #25: CLEvent.waitFor bug causes segfault
+- Fixed [issue nativelibs4java#18]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/18): CLImage.write calls enqueueImageRead !
+- Documented workaround for Linux crashes ([issue nativelibs4java#20]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/20)) : [http://code.google.com/p/javacl/wiki/TroubleShootingJavaCLOnLinux
+](http://code.google.com/p/javacl/wiki/TroubleShootingJavaCLOnLinux
+)- Fixed [issue nativelibs4java#21]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/21): NIOUtils.put() doesn't accept ByteBuffer
+- Fixed [issue nativelibs4java#25]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/25): CLEvent.waitFor bug causes segfault
 - OpenCL 1.1 support :
 	- CLContext.createUserEvent()
 	- CLUserEvent.setStatus(int), setCompleted()
@@ -152,13 +189,14 @@ out)
 - Faster enums
 - Check for cl_amd_fp64 in CLDevice.isDoubleSupported()
 - Fixed CLProgram.getBinaries()
-- Fixed issue #22 (maven pom issue)
+- Fixed [issue nativelibs4java#22]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/22) (maven pom issue)
 
-Version 1.0-beta-4 (r760, 20100121)
+## Version 1.0-beta-4 (r760, 20100121)
 
-- Changed semantics of offset & length arguments in typed CLxxxBuffer.read / write / map methods : now expressed in elements, not in bytes (e.g. 4 bytes per element for CLIntBuffer)
+- Changed semantics of offset &amp; length arguments in typed CLxxxBuffer.read / write / map methods : now expressed in elements, not in bytes (e.g. 4 bytes per element for CLIntBuffer)
 - Added OpenGL interoperability methods to CLContext and CLQueue (can create a CLByteBuffer from an OpenGL buffer object, a CLImage2D/3D from an OpenGL 2D/3D texture or a renderbuffer).
-- Added OpenGL-compatible context creation methods to JavaCL & CLPlatform classes
+- Added OpenGL-compatible context creation methods to JavaCL &amp; CLPlatform classes
 - Added basic reduction support in ReductionUtils (cumulative additions, multiplications, min, max...)
 - Created javacl-demos package, with Particles, Hardware Report and Mandelbrot demos...
 - Finished migration from NativeLong to NativeSize (changes only the low-level bindings)
@@ -169,29 +207,38 @@ Version 1.0-beta-4 (r760, 20100121)
 - Created a kernel wrapper autogenerator (Maven plugin based on JNAerator) : translates all constants on the Java side and presents kernels as methods with the correct Java argument types. It assumes OpenCL kernels (*.c, *.cl) are in src/main/opencl
 - Added wrappers around clGetKernelWorkGroupInfo
 - Fixed respect of endianness of devices that have different endianness than platform
-- Fixed issue #10: "getMaxWorkItemSizes() fails on win7 64 GTX260"
+- Fixed [issue nativelibs4java#10]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/10): "getMaxWorkItemSizes() fails on win7 64 GTX260"
 
-Version 1.0-beta-3 (r , 20091030)
+## Version 1.0-beta-3 (r , 20091030)
 
-- Fixed Issue #8 : NativeLong's can not represent size_t on windows x64 system (all user code that uses the low-level bindings needs to be updated : NativeLong -&gt; NativeSize)
+- Fixed [Issue nativelibs4java#8]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/8) : NativeLong's can not represent size_t on windows x64 system (all user code that uses the low-level bindings needs to be updated : NativeLong -&amp;gt; NativeSize)
 - Added CLContext/CLDevice.isDoubleSupported, isHalfSupported, isByteAddressableStoreSupported
 - Added If function to ScalaCL (operates on statements or on expressions)
 - Added CLAbstractEntity.release()
-- Fixed Issue #4  : CLContext.createContext(CLDevice... devices) created context on only one device
-- Regenerated the low level bindings with latest JNAerator : now using NativeSize class instead of NativeLong for size_t (fixes Issue #8)
-- Fixed Issue #5  : fixed formatting of CLPlatform.toString()
-- Fixed Issue #6  : use max X workgroup dimension for better benchmark speed
-- Fixed Issue #7  : CLMem class bug in Usage.WriteOnly and Usage.ReadWrite
-- Fixed Issue #11 : call clRetainMemObject when sharing a cl_mem between CLBuffer instances.
+- Fixed [Issue nativelibs4java#4]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/4)  : CLContext.createContext(CLDevice... devices) created context on only one device
+- Regenerated the low level bindings with latest JNAerator : now using NativeSize class instead of NativeLong for size_t (fixes [Issue nativelibs4java#8]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/8))
+- Fixed [Issue nativelibs4java#5]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/5)  : fixed formatting of CLPlatform.toString()
+- Fixed [Issue nativelibs4java#6]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/6)  : use max X workgroup dimension for better benchmark speed
+- Fixed [Issue nativelibs4java#7]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/7)  : CLMem class bug in Usage.WriteOnly and Usage.ReadWrite
+- Fixed [Issue nativelibs4java#11]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/11) : call clRetainMemObject when sharing a cl_mem between CLBuffer instances.
 - Choose 'best' device in benchmark test
 
-Version 1.0-beta-2
+## Version 1.0-beta-2
 
 - JAR is now self-sufficient (includes JNA + JNAerator's runtime classes)
 - Added CLKernel.setLocalArg(argIndex, localArgByteLength)
 - Allow localWorkSizes to be null in enqueueNDRange
 - Added support for barriers and markers in CLQueue
-- Fixed issue #2 : enqueueNDRange does not work for nDim > 1
+- Fixed [issue nativelibs4java#2]
+  (https://github.com/nativelibs4java/nativelibs4java/issues/2) : enqueueNDRange does not work for nDim &gt; 1
 - Added CLDevice.getMaxWorkItemSizes()
 - CLDevice.toString() now only prints the name
 - Moved method createContext from CLContext to CLPlatform
@@ -211,7 +258,7 @@ Version 1.0-beta-2
 - Added hashCode and equals method to most classes
 - Added ability to create out of order queues and change queue properties after creation
 
-Version 1.0-beta-1
+## Version 1.0-beta-1
 
 - New CLPlatform class (~ OpenCL implementation) which now hosts the list*Devices(...) methods 
 - Entry point of library is now OpenCL4Java.listPlatforms() 
@@ -219,8 +266,8 @@ Version 1.0-beta-1
 - Better separation between blocking and non blocking calls 
 - New CLSampler class supported as argument of CLKernel 
 - Many info getters with typesafe enums / enum sets in classes CLDevice, CLPlatform, CLKernel... 
-- Much more complete JavaDoc : http://nativelibs4java.sourceforge.net/sites/OpenCL4Java/apidocs/ 
-- Example & benchmark classes became JUnit tests and moved here : http://code.google.com/p/nativelibs4java/source/browse/#svn/trunk/lib... 
+- Much more complete JavaDoc : [http://nativelibs4java.sourceforge.net/sites/OpenCL4Java/apidocs/](http://nativelibs4java.sourceforge.net/sites/OpenCL4Java/apidocs/) 
+- Example &amp; benchmark classes became JUnit tests and moved here : [http://code.google.com/p/nativelibs4java/source/browse/#svn/trunk/lib...](http://code.google.com/p/nativelibs4java/source/browse/#svn/trunk/lib...) 
 
 While this release is rather OpenCL4Java-focused, ScalaCL also got its bunch of enhancements : 
 - Added scalar variables IntVar, FloatVar, ShortVar... 
