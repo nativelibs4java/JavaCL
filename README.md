@@ -6,16 +6,16 @@ It was previously hosted on [ochafik/nativelibs4java](http://github.com/ochafik/
 
 # Quick links
 
-[![Join the chat at https://gitter.im/ochafik/JavaCL](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ochafik/JavaCL?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/nativelibs4java/JavaCL](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/nativelibs4java/JavaCL?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-* [CHANGELOG](https://github.com/ochafik/JavaCL/blob/master/CHANGELOG)
+* [CHANGELOG](./CHANGELOG.md)
 * [FAQ](http://code.google.com/p/javacl/wiki/FAQ)
 * [JavaDoc](http://nativelibs4java.sourceforge.net/javacl/api/stable/)
 * [Credits and License](http://code.google.com/p/bridj/wiki/CreditsAndLicense)
 
 # Building
   ```
-  git clone http://github.com/ochafik/JavaCL.git
+  git clone http://github.com/nativelibs4java/JavaCL.git
   mvn clean install
   ```
 
