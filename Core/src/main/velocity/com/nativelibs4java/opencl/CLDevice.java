@@ -734,12 +734,25 @@ public class CLDevice extends CLAbstractEntity {
 
     @InfoName("CL_DEVICE_PARTITION_PROPERTIES")
     public EnumSet<PartitionType> getPartitionProperties() {
+        return getPartitionTypeInfo(CL_DEVICE_PARTITION_PROPERTIES);
+    }
+
+    @InfoName("CL_DEVICE_PARTITION_TYPE")
+    public EnumSet<PartitionType> getPartitionType() {
+        return getPartitionTypeInfo(CL_DEVICE_PARTITION_TYPE);
+    }
+
+    private EnumSet<PartitionType> getPartitionTypeInfo(int info) {
         EnumSet<PartitionType> ret = EnumSet.noneOf(PartitionType.class);
-        Pointer<?> ptr = infos.getPointer(getEntity(), CL_DEVICE_PARTITION_PROPERTIES);;
+        Pointer<?> ptr = infos.getPointer(getEntity(), info);
         if (ptr != null) {
             Pointer<SizeT> props = ptr.as(SizeT.class);
             for (long i = 0, n = props.getValidElements(); i < n; i++) {
-                ret.add(PartitionType.getEnum(props.getSizeTAtIndex(i)));
+                long value = props.getSizeTAtIndex(i);
+                if (value == 0) {
+                  break;
+                }
+                ret.add(PartitionType.getEnum(value));
             }
         }
         return ret;
@@ -756,7 +769,11 @@ public class CLDevice extends CLAbstractEntity {
         if (ptr != null) {
             Pointer<SizeT> props = ptr.as(SizeT.class);
             for (long i = 0, n = props.getValidElements(); i < n; i++) {
-                ret.add(AffinityDomain.getEnum(props.getSizeTAtIndex(i)));
+                long value = props.getSizeTAtIndex(i);
+                if (value == 0) {
+                  break;
+                }
+                ret.add(AffinityDomain.getEnum(value));
             }
         }
         return ret;
