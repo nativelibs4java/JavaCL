@@ -12,10 +12,30 @@
 	<parent>
 		<groupId>com.nativelibs4java</groupId>
 		<artifactId>nativelibs4java-parent</artifactId>
-		<version>1.9</version>
-		<relativePath>..</relativePath>
+		<version>1.9-SNAPSHOT</version>
+		<relativePath>../nativelibs4java/libraries</relativePath>
 	</parent>
-	
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  
+  <properties>
+    <bridj.version>0.7.1-SNAPSHOT</bridj.version>
+    <jnaerator.version>0.13-SNAPSHOT</jnaerator.version>
+  </properties>
+
+  <scm>
+    <connection>scm:git:git@github.com:nativelibs4java/JavaCL.git</connection>
+    <developerConnection>scm:git:git@github.com:nativelibs4java/JavaCL.git</developerConnection>
+    <url>http://github.com/nativelibs4java/JavaCL</url>
+  </scm>
+
 	<modules>
 		<module>LibCL</module>
 		<module>InteractiveImageDemo</module>
@@ -109,7 +129,7 @@
 			<dependency>
 				<groupId>com.nativelibs4java</groupId>
 				<artifactId>jnaerator</artifactId>
-				<version>${jnaerator.version}</version>
+        <version>${jnaerator.version}</version>
 			</dependency>
 		
 		</dependencies>
