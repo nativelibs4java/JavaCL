@@ -764,19 +764,7 @@ public class CLDevice extends CLAbstractEntity {
      */
     @InfoName("CL_DEVICE_PARTITION_AFFINITY_DOMAIN")
     public EnumSet<AffinityDomain> getPartitionAffinityDomains() {
-        EnumSet<AffinityDomain> ret = EnumSet.noneOf(AffinityDomain.class);
-        Pointer<?> ptr = infos.getMemory(getEntity(), CL_DEVICE_PARTITION_AFFINITY_DOMAIN);
-        if (ptr != null) {
-            Pointer<SizeT> props = ptr.as(SizeT.class);
-            for (long i = 0, n = props.getValidElements(); i < n; i++) {
-                long value = props.getSizeTAtIndex(i);
-                if (value == 0) {
-                  break;
-                }
-                ret.add(AffinityDomain.getEnum(value));
-            }
-        }
-        return ret;
+        return AffinityDomain.getEnumSet(infos.getIntOrLong(getEntity(), CL_DEVICE_PARTITION_AFFINITY_DOMAIN));
     }
 
     @InfoName("CL_DEVICE_PARTITION_MAX_SUB_DEVICES")
@@ -1168,6 +1156,9 @@ public class CLDevice extends CLAbstractEntity {
         
         public static AffinityDomain getEnum(long v) {
             return EnumValues.getEnum(v, AffinityDomain.class);
+        }
+        public static EnumSet<AffinityDomain> getEnumSet(long v) {
+            return EnumValues.getEnumSet(v, AffinityDomain.class);
         }
     }
 
