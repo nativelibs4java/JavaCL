@@ -744,7 +744,7 @@ public class CLDevice extends CLAbstractEntity {
 
     private EnumSet<PartitionType> getPartitionTypeInfo(int info) {
         EnumSet<PartitionType> ret = EnumSet.noneOf(PartitionType.class);
-        Pointer<?> ptr = infos.getPointer(getEntity(), info);
+        Pointer<?> ptr = infos.getMemory(getEntity(), info);
         if (ptr != null) {
             Pointer<SizeT> props = ptr.as(SizeT.class);
             for (long i = 0, n = props.getValidElements(); i < n; i++) {
@@ -765,7 +765,7 @@ public class CLDevice extends CLAbstractEntity {
     @InfoName("CL_DEVICE_PARTITION_AFFINITY_DOMAIN")
     public EnumSet<AffinityDomain> getPartitionAffinityDomains() {
         EnumSet<AffinityDomain> ret = EnumSet.noneOf(AffinityDomain.class);
-        Pointer<?> ptr = infos.getPointer(getEntity(), CL_DEVICE_PARTITION_AFFINITY_DOMAIN);;
+        Pointer<?> ptr = infos.getMemory(getEntity(), CL_DEVICE_PARTITION_AFFINITY_DOMAIN);
         if (ptr != null) {
             Pointer<SizeT> props = ptr.as(SizeT.class);
             for (long i = 0, n = props.getValidElements(); i < n; i++) {

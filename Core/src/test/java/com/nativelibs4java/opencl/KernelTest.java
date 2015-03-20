@@ -43,7 +43,7 @@ public class KernelTest {
         CLBuffer<Byte> out = context.createByteBuffer(Usage.Output, size * length);
         StringBuilder b = new StringBuilder(
             "#pragma OPENCL EXTENSION cl_khr_fp64 : enable\n" +
-            "kernel void f(constant " + type + length + " arg, global " + type + "* out, long length) {\n");
+            "kernel void f(" + type + length + " arg, global " + type + "* out, long length) {\n");
         for (long i = 0; i < length; i++) {
             b.append("out[" + i + "] = arg.s" + (i < 10 ? i + "" : ((char)((int)'a' + (i - 10))) + "") + ";\n");
         }
