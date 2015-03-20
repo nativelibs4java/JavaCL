@@ -88,10 +88,13 @@ public class DeviceTest {
     public void testSplitByAffinity() {
         if (!device.getPartitionProperties().contains(CLDevice.PartitionType.ByAffinityDomain)) return;
 
-        CLDevice[] subDevices = device.createSubDevicesByAffinity(CLDevice.AffinityDomain.NextPartitionable);
-        assertTrue(subDevices.length > 1);
-        for (CLDevice subDevice : subDevices) {
-            checkParent(device, subDevice);
+        for (CLDevice.AffinityDomain domain : device.getPartitionAffinityDomains()) {
+          CLDevice[] subDevices = device.createSubDevicesByAffinity(domain);
+          assertTrue(subDevices.length > 1);
+          for (CLDevice subDevice : subDevices) {
+              checkParent(device, subDevice);
+              assertEquals(domain, subDevice.getPartitionAffinityDomain());
+          }
         }
     }
 

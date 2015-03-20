@@ -790,7 +790,7 @@ public class CLDevice extends CLAbstractEntity {
      */
     public AffinityDomain getPartitionAffinityDomain() {
         Pointer<?> memory = infos.getMemory(getEntity(), CL_DEVICE_PARTITION_TYPE);
-        long type = memory.getSizeT();
+        long type = memory == null ? 0 : memory.getSizeT();
         if (type != CL_DEVICE_PARTITION_BY_AFFINITY_DOMAIN) {
         	return null;
         }
