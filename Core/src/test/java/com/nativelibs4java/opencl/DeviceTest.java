@@ -94,9 +94,9 @@ public class DeviceTest {
     }
 
     private void checkParent(CLDevice parent, CLDevice child) {
-        assertSame(device, child.getParent());
+        assertSame(parent, child.getParent());
         // Force a get info CL_DEVICE_PARENT_DEVICE.
-        assertSame(device, new CLDevice(device.getPlatform(), null, child.getEntity(), false).getParent());
+        assertEquals(parent, new CLDevice(device.getPlatform(), null, child.getEntity(), false).getParent());
     }
 
 }
