@@ -74,12 +74,14 @@ public class DeviceTest {
         CLDevice[] subDevices = device.createSubDevicesByCounts(counts);
         assertEquals(counts.length, subDevices.length);
         int i = 0;
+        long[] actualCounts = new long[counts.length];
         for (CLDevice subDevice : subDevices) {
-        	long count = counts[i];
-            assertEquals(count, subDevice.getMaxComputeUnits());
+            actualCounts[i] = subDevice.getMaxComputeUnits();
             checkParent(device, subDevice);
             i++;
         }
+        Arrays.sort(actualCounts);
+        assertArrayEquals(counts, actualCounts);
     }
 
     @Test
