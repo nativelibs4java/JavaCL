@@ -1,14 +1,19 @@
 #parse("main/Header.vm")
 package com.nativelibs4java.opencl;
+
+import static com.nativelibs4java.opencl.JavaCL.log;
 import static com.nativelibs4java.opencl.library.OpenCLLibrary.*;
 import static com.nativelibs4java.opencl.library.IOpenCLLibrary.*;
+
 import com.nativelibs4java.opencl.library.OpenCLLibrary;
 import com.ochafik.util.string.StringUtils;
+
+import org.bridj.*;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.*;
 import java.lang.reflect.*;
-import static com.nativelibs4java.opencl.JavaCL.log;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,8 +57,11 @@ public class CLException extends RuntimeException {
 			return message + logSuffix;
 		}
 		
-		void setKernelArg(CLKernel kernel, int argIndex) {
-			message += " (kernel name = " + kernel.getFunctionName() + ", num args = " + kernel.getNumArgs() + ", arg index = " + argIndex;
+		void setKernelArg(CLKernel kernel, int argIndex, long size, Pointer<?> ptr) {
+			message += " (kernel name = " + kernel.getFunctionName();
+      message += ", num args = " + kernel.getNumArgs();
+      message += ", arg index = " + argIndex;
+      message += ", arg size = " + size;
 			CLProgram program = kernel.getProgram();
 			if (program != null)
 				message += ", source = <<<\n\t" + program.getSource().replaceAll("\n", "\n\t");

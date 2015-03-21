@@ -219,7 +219,7 @@ public class CLKernel extends CLAbstractEntity {
     		try {
                 error(CL.clSetKernelArg(getEntity(), i, size, getPeer(ptr)));
     		} catch (CLTypedException ex) {
-    			ex.setKernelArg(this, i);
+    			ex.setKernelArg(this, i, size, ptr);
     			throw ex;
     		}
     }
