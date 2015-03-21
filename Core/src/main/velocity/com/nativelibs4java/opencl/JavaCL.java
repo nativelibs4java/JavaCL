@@ -219,9 +219,9 @@ public class JavaCL {
     private static IOpenCLLibrary wrapWithLogs(final IOpenCLLibrary cl) {
         return (IOpenCLLibrary) Proxy.newProxyInstance(JavaCL.class.getClassLoader(), new Class[] { IOpenCLLibrary.class }, new InvocationHandler() {
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                log(Level.INFO, method.getName() + "(" + StringUtils.implode(args, ", ") + ")");
+                log(Level.WARNING, method.getName() + "(" + StringUtils.implode(args, ", ") + ")");
                 Object ret = method.invoke(cl, args);
-                log(Level.INFO, "\t" + method.getName() + " -> " + ret);
+                log(Level.WARNING, "\t" + method.getName() + " -> " + ret);
                 return ret;
             }
         });
