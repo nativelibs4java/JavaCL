@@ -56,7 +56,7 @@ public class KernelTest {
 
     @Test
     public void nullArg() {
-        assertArrayEquals(new Pointer[] { null }, testArg("int", CLKernel.NULL_POINTER_KERNEL_ARGUMENT, Pointer.class).getPointers());
+        assertArrayEquals(new Pointer[] { null }, testArg("int*", CLKernel.NULL_POINTER_KERNEL_ARGUMENT, Pointer.class).getPointers());
     }
 
     byte[] byteTup(int n) {

@@ -231,55 +231,37 @@ public class CLKernel extends CLAbstractEntity {
 		setKernelArg(i, ptr.getValidBytes(), ptr);
     }
     
+#foreach ($prim in $primitives)
     /**
+     * Sets a vector type value as the arg at index {@code i}.
+     *
+     * For instance to pass a {@code ${prim.Name}3}, one must pass a {@code ${prim.Name}[]} of size {@code 3}. 
+     *
 #documentCallsFunction("clSetKernelArg")
+     * @param i index of the argument in the kernel's parameters list
+     * @param arg array of ${prim.Name}s (of length 2, 3, 4, 8 or 16, which must match the arity of the OpenCL vector type used by the kernel).
      */
-    public void setArg(int i, float[] arg) {
-        setKernelArg(i, arg.length * 4, arg.length <= MAX_TMP_ITEMS ? localPointer.setFloats(arg) : pointerToFloats(arg));
+    public void setArg(int i, ${prim.Name}[] arg) {
+        int length = normalizeVectorTypeArity(arg.length);
+        setKernelArg(i, length * ${prim.Size}, length <= MAX_TMP_ITEMS ? localPointer.set${prim.CapName}s(arg) : pointerTo${prim.CapName}s(arg));
     }
-    /**
-#documentCallsFunction("clSetKernelArg")
-     */
-    public void setArg(int i, int[] arg) {
-        setKernelArg(i, arg.length * 4, arg.length <= MAX_TMP_ITEMS ? localPointer.setInts(arg) : pointerToInts(arg));
+#end
+
+    private static int normalizeVectorTypeArity(int length) {
+      switch (length) {
+        case 3:
+          // cl_<prim>3 is identical in size, alignment and behavior to cl_<prim>4. See section 6.1.5
+          return 4;
+        case 2:
+        case 4:
+        case 8:
+        case 16:
+          return length;
+        default:
+          throw new IllegalArgumentException("Invalid vector type length: " + length + " (valid vector type sizes are 2, 3, 4, 8, 16)");
+      }
     }
-    /**
-#documentCallsFunction("clSetKernelArg")
-     */
-    public void setArg(int i, double[] arg) {
-        setKernelArg(i, arg.length * 8, arg.length <= MAX_TMP_ITEMS ? localPointer.setDoubles(arg) : pointerToDoubles(arg));
-    }
-    /**
-#documentCallsFunction("clSetKernelArg")
-     */
-    public void setArg(int i, long[] arg) {
-        setKernelArg(i, arg.length * 8, arg.length <= MAX_TMP_ITEMS ? localPointer.setLongs(arg) : pointerToLongs(arg));
-    }
-    /**
-#documentCallsFunction("clSetKernelArg")
-     */
-    public void setArg(int i, short[] arg) {
-        setKernelArg(i, arg.length * 2, arg.length <= MAX_TMP_ITEMS ? localPointer.setShorts(arg) : pointerToShorts(arg));
-    }
-    /**
-#documentCallsFunction("clSetKernelArg")
-     */
-    public void setArg(int i, byte[] arg) {
-        setKernelArg(i, arg.length, arg.length <= MAX_TMP_ITEMS ? localPointer.setBytes(arg) : pointerToBytes(arg));
-    }
-    /**
-#documentCallsFunction("clSetKernelArg")
-     */
-    public void setArg(int i, boolean[] arg) {
-        setKernelArg(i, arg.length, arg.length <= MAX_TMP_ITEMS ? localPointer.setBooleans(arg) : pointerToBooleans(arg));
-    }
-    /**
-#documentCallsFunction("clSetKernelArg")
-     */
-    public void setArg(int i, char[] arg) {
-        setKernelArg(i, arg.length * 2, arg.length <= MAX_TMP_ITEMS ? localPointer.setChars(arg) : pointerToChars(arg));
-    }
-    
+
     /**
 #documentCallsFunction("clSetKernelArg")
      */

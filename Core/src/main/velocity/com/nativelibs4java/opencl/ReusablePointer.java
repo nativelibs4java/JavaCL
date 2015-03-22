@@ -12,8 +12,14 @@ final class ReusablePointer {
 
     public ReusablePointer(long bytesCapacity) {
         this.bytesCapacity = bytesCapacity;
-        this.pointer = Pointer.allocateBytes(bytesCapacity).withoutValidityInformation();
+        this.pointer = allocateAlignedBytes(bytesCapacity).withoutValidityInformation();
     }
+
+    static Pointer<?> allocateAlignedBytes(int count) {
+      // Allocate memory aligned to 128 bytes to match alignment of cl_double16.
+      return Pointer.allocateAlignedBytes(null /* io */, count, 128 /* alignment */, null /* beforeDeallocation */);
+    }
+
     public Pointer<Integer> pointerToInts(int... values) {
         if (values == null)
             return null;
@@ -48,7 +54,7 @@ final class ReusablePointer {
         if (needed == 0)
             return null;
         if (needed > bytesCapacity) {
-            return (Pointer)Pointer.allocateBytes(needed);
+            return (Pointer)allocateAlignedBytes(needed);
         } else {
             return (Pointer)pointer;
         }
