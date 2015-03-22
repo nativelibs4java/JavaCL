@@ -166,14 +166,19 @@ public class BufferTest extends AbstractCommon {
         } catch (Throwable th) {}
     }
     @Test
-    public void testCopyTo() {
-        CLBuffer<Integer> b = context.createIntBuffer(CLMem.Usage.InputOutput, pointerToInts(1, 2, 3, 4));
-        CLBuffer<Integer> out = context.createIntBuffer(CLMem.Usage.InputOutput, 4);
-        CLEvent e = b.copyElementsTo(queue, out, 2, 1, 2);
-        assertArrayEquals(new int[] { 0, 3, 4, 0 }, out.read(queue, e).getInts());
-        
-        e = b.copyTo(queue, out);
-        assertArrayEquals(new int[] { 1, 2, 3, 4 }, out.read(queue, e).getInts());
-    }
+    public void testCopyTo_full() {
+        CLBuffer<Integer> b = context.createIntBuffer(CLMem.Usage.InputOutput, pointerToInts(1, 2, 3, 4, 5, 6));
+        CLBuffer<Integer> out = context.createIntBuffer(CLMem.Usage.InputOutput, 6);
 
+        CLEvent e = b.copyTo(queue, out);
+        assertArrayEquals(new int[] { 1, 2, 3, 4, 5, 6 }, out.read(queue, e).getInts());
+    }
+    @Test
+    public void testCopyTo_partial() {
+        CLBuffer<Integer> b = context.createIntBuffer(CLMem.Usage.InputOutput, pointerToInts(1, 2, 3, 4, 5, 6));
+        CLBuffer<Integer> out = context.createIntBuffer(CLMem.Usage.InputOutput, 6);
+
+        CLEvent e = b.copyElementsTo(queue, out, 2, 1, 2);
+        assertArrayEquals(new int[] { 3, 4 }, out.read(queue, e).next().validElements(2).getInts());
+    }
 }

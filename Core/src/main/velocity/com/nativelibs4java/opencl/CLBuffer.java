@@ -569,10 +569,11 @@ public class CLBuffer<T> extends CLMem {
 #documentEventsToWaitForAndReturn()
      */
     public CLEvent copyElementsTo(CLQueue queue, CLBuffer destination, long sourceElementOffset, long destinationElementOffset, long elementCount, CLEvent... eventsToWaitFor) {
+        long elementSize = getElementSize();
         return copyBytesTo(queue, destination,
-            sourceElementOffset * getElementSize(),
-            destinationElementOffset * getElementSize(),
-            elementCount * getElementSize(),
+            sourceElementOffset * elementSize,
+            destinationElementOffset * elementSize,
+            elementCount * elementSize,
             eventsToWaitFor);
     }
 	
