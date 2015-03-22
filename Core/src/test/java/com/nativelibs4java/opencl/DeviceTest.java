@@ -84,18 +84,47 @@ public class DeviceTest {
         assertArrayEquals(counts, actualCounts);
     }
 
-    @Test
-    public void testSplitByAffinity() {
-        if (!device.getPartitionProperties().contains(CLDevice.PartitionType.ByAffinityDomain)) return;
-
-        for (CLDevice.AffinityDomain domain : device.getPartitionAffinityDomains()) {
-          CLDevice[] subDevices = device.createSubDevicesByAffinity(domain);
-          assertTrue(subDevices.length > 1);
-          for (CLDevice subDevice : subDevices) {
-              checkParent(device, subDevice);
-              assertEquals(domain, subDevice.getPartitionAffinityDomain());
-          }
+    public void checkSplitByAffinity(CLDevice.AffinityDomain domain) {
+        if (!device.getPartitionProperties().contains(CLDevice.PartitionType.ByAffinityDomain)) {
+          System.out.println("Split by affinity is not supported by device " + device);
+          return;
         }
+        if (!device.getPartitionAffinityDomains().contains(domain)) {
+          System.out.println("Affinity domain " + domain + " not supported by device " + device);
+          return;
+        }
+
+        CLDevice[] subDevices = device.createSubDevicesByAffinity(domain);
+        assertTrue(subDevices.length > 1);
+        for (CLDevice subDevice : subDevices) {
+            checkParent(device, subDevice);
+            assertEquals(domain, subDevice.getPartitionAffinityDomain());
+        }
+    }
+
+    @Test
+    public void testSplitByAffinity_NUMA() {
+      checkSplitByAffinity(CLDevice.AffinityDomain.NUMA);
+    }
+    @Test
+    public void testSplitByAffinity_L4Cache() {
+      checkSplitByAffinity(CLDevice.AffinityDomain.L4Cache);
+    }
+    @Test
+    public void testSplitByAffinity_L3Cache() {
+      checkSplitByAffinity(CLDevice.AffinityDomain.L3Cache);
+    }
+    @Test
+    public void testSplitByAffinity_L2Cache() {
+      checkSplitByAffinity(CLDevice.AffinityDomain.L2Cache);
+    }
+    @Test
+    public void testSplitByAffinity_L1Cache() {
+      checkSplitByAffinity(CLDevice.AffinityDomain.L1Cache);
+    }
+    @Test
+    public void testSplitByAffinity_NextPartitionable() {
+      checkSplitByAffinity(CLDevice.AffinityDomain.NextPartitionable);
     }
 
     private void checkParent(CLDevice parent, CLDevice child) {

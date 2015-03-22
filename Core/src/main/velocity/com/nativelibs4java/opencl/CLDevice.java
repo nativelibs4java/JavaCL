@@ -1202,7 +1202,7 @@ public class CLDevice extends CLAbstractEntity {
      */
     public CLDevice[] createSubDevicesByAffinity(AffinityDomain affinityDomain) {
 		return createSubDevices(pointerToSizeTs(
-			CL_DEVICE_PARTITION_BY_AFFINITY_DOMAIN, affinityDomain.value(), 0, 0
+			CL_DEVICE_PARTITION_BY_AFFINITY_DOMAIN, affinityDomain.value(), 0
 		));
 	}
 
