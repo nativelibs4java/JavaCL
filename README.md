@@ -14,6 +14,7 @@ It was previously hosted on [ochafik/nativelibs4java](http://github.com/ochafik/
 * [Credits and License](http://code.google.com/p/bridj/wiki/CreditsAndLicense)
 
 # Building
+
   ```
   git clone http://github.com/nativelibs4java/JavaCL.git
   mvn clean install
