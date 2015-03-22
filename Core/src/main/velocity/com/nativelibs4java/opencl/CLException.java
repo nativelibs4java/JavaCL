@@ -32,11 +32,6 @@ public class CLException extends RuntimeException {
         return code;
     }
 
-	@Retention(RetentionPolicy.RUNTIME)
-	public @interface ErrorCode {
-		int value();
-	}
-
 	public static class CLVersionException extends CLException {
 		public CLVersionException(String message) {
 			super(message, 0);
@@ -271,4 +266,9 @@ public class CLException extends RuntimeException {
         	
         throw toThrow;
     }
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@interface ErrorCode {
+  int value();
 }
