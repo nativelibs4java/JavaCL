@@ -54,9 +54,25 @@ public class KernelTest {
         return out.as(targetType).read(queue, e).getArray();
     }
 
+
+    public <T> Pointer<Boolean> testNullableArg(Object value) {
+
+    }
+
     @Test
     public void nullArg() {
-        assertArrayEquals(new Pointer[] { null }, testArg("int*", CLKernel.NULL_POINTER_KERNEL_ARGUMENT, Pointer.class).getPointers());
+        CLBuffer<Byte> out = context.createByteBuffer(Usage.InputOutput, 2) ;
+        CLKernel isInputNull = context.createProgram(
+            "kernel void isInputNull(global int* in, global bool* out) {\n" +
+                "*out = !in;\n" +
+            "}"
+        ).createKernel("isInputNull");
+
+        isInputNull.setArgs(CLKernel.NULL_POINTER_KERNEL_ARGUMENT, out);
+        assertTrue(out.read(queue, isInputNull.enqueueTask(queue)).as(Boolean.class).get());
+
+        isInputNull.setArgs(out, out);
+        assertFalse(out.read(queue, isInputNull.enqueueTask(queue)).as(Boolean.class).get());
     }
 
     byte[] byteTup(int n) {
