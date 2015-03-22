@@ -10,8 +10,6 @@ import com.ochafik.util.string.StringUtils;
 
 import org.bridj.*;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.util.*;
 import java.lang.reflect.*;
 import java.util.logging.Level;
@@ -31,6 +29,11 @@ public class CLException extends RuntimeException {
     public int getCode() {
         return code;
     }
+
+  @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
+  @interface ErrorCode {
+    int value();
+  }
 
 	public static class CLVersionException extends CLException {
 		public CLVersionException(String message) {
@@ -268,7 +271,3 @@ public class CLException extends RuntimeException {
     }
 }
 
-@Retention(RetentionPolicy.RUNTIME)
-@interface ErrorCode {
-  int value();
-}
