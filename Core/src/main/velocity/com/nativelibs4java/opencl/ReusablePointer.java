@@ -15,7 +15,7 @@ final class ReusablePointer {
         this.pointer = allocateAlignedBytes(bytesCapacity).withoutValidityInformation();
     }
 
-    static Pointer<?> allocateAlignedBytes(int count) {
+    static Pointer<?> allocateAlignedBytes(long count) {
       // Allocate memory aligned to 128 bytes to match alignment of cl_double16.
       return Pointer.allocateAlignedBytes(null /* io */, count, 128 /* alignment */, null /* beforeDeallocation */);
     }
