@@ -54,11 +54,6 @@ public class KernelTest {
         return out.as(targetType).read(queue, e).getArray();
     }
 
-
-    public <T> Pointer<Boolean> testNullableArg(Object value) {
-
-    }
-
     @Test
     public void nullArg() {
         CLBuffer<Byte> out = context.createByteBuffer(Usage.InputOutput, 2) ;
