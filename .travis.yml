@@ -13,7 +13,7 @@ before_install:
 - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) main universe restricted multiverse"
 - sudo apt-add-repository "deb http://archive.ubuntu.com/ubuntu trusty main universe multiverse restricted"
 - sudo apt-get update -qq
-- sudo apt-get install -qq opencl-headers fglrx=2:8.960-0ubuntu1 ocl-icd-libopencl1 libltdl-dev hwloc
+- sudo apt-get install -qq opencl-headers fglrx=2:8.960-0ubuntu1 ocl-icd-libopencl1 libltdl-dev hwloc libhwloc-dev
 - ./scripts/install_pocl.sh
 # - sudo apt-get install -qq opencl-headers fglrx=2:8.960-0ubuntu1 beignet beignet-opencl-icd
 # - export DISPLAY=:99.0
