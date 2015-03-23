@@ -17,5 +17,4 @@ before_install:
 # On mac: sudo port install libtool
 - sudo apt-get install -qq libltdl-dev
 - sudo apt-get install -qq ocl-icd-libopencl1
-before_script:
-- ./script/install_pocl.sh
+- ./scripts/install_pocl.sh
