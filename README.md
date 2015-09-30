@@ -2,7 +2,7 @@
 
 [JavaCL](http://javacl.googlecode.com) provides OpenCL bindings for Java. It wraps low-level bindings in a clean object-oriented API, which adds a few goodies.
 
-A comprehensive documentation is available on its [WebSite](javacl.googlecode.com) and [Wiki](https://code.google.com/p/javacl/wiki/FAQ?tm=6).
+A comprehensive documentation is available on its [WebSite](http://javacl.googlecode.com) and [Wiki](https://code.google.com/p/javacl/wiki/FAQ?tm=6).
 
 It was previously hosted on [ochafik/nativelibs4java](http://github.com/ochafik/nativelibs4java).
 
